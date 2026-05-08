@@ -5,11 +5,11 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Layers, Plus, Trash2, Upload, X } from 'lucide-react'
 import Image from 'next/image'
-import { get, patch, post, del, put } from '../../../../../lib/api-client'
+import { get, patch, post, del, put, upload } from '../../../../../lib/api-client'
 import { StatusBadge } from '../../../../../components/ui/status-badge'
 
 interface Category { id: string; name: string }
-interface Media { id: string; url: string; alt: string | null; position: number }
+interface Media { id: string; url: string; alt: string | null; position: number; type: 'GALLERY' | 'FRAME_360' }
 interface Variant { id: string; size: string; color: string; material: string | null; sku: string; stock: number }
 interface Shoe {
   id: string; name: string; slug: string; description: string | null
@@ -28,6 +28,7 @@ export default function ShoeDetailPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [mediaTab, setMediaTab] = useState<'GALLERY' | 'FRAME_360'>('GALLERY')
   const [showVariantForm, setShowVariantForm] = useState(false)
   const [variantForm, setVariantForm] = useState({ size: '', color: '', material: '', sku: '', stock: '0' })
   const fileRef = useRef<HTMLInputElement>(null)
@@ -38,7 +39,7 @@ export default function ShoeDetailPage() {
 
   async function load() {
     const [s, cats] = await Promise.all([
-      get<Shoe>(`/catalog/shoes/${id}`),
+      get<Shoe>(`/catalog/shoes/id/${id}`),
       get<Category[]>('/catalog/categories'),
     ])
     setShoe(s)
@@ -69,14 +70,20 @@ export default function ShoeDetailPage() {
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return
+    const files = Array.from(e.target.files ?? []); if (!files.length) return
     setUploading(true)
     try {
-      const { uploadUrl, key, publicUrl } = await post<{ uploadUrl: string; key: string; publicUrl: string }>(
-        '/media/presign', { filename: file.name, contentType: file.type, folder: 'base-shoes' },
-      )
-      await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
-      await post('/media', { url: publicUrl, key, alt: file.name, position: shoe!.media.length, baseShoeId: id })
+      const mediaOfType = shoe!.media.filter((m) => m.type === mediaTab)
+      for (let i = 0; i < files.length; i++) {
+        const fd = new FormData()
+        fd.append('file', files[i])
+        fd.append('folder', 'base-shoes')
+        fd.append('alt', files[i].name)
+        fd.append('position', String(mediaOfType.length + i))
+        fd.append('type', mediaTab)
+        fd.append('baseShoeId', id)
+        await upload('/media/upload', fd)
+      }
       await load()
     } catch (err) { alert(err instanceof Error ? err.message : 'Upload failed') }
     finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }
@@ -187,22 +194,45 @@ export default function ShoeDetailPage() {
         {/* Images */}
         <div className="bg-surface border rounded-xl p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Images</h2>
+            <div className="flex items-center gap-1 p-0.5 bg-muted rounded-lg">
+              {(['GALLERY', 'FRAME_360'] as const).map((t) => (
+                <button
+                  key={t} type="button" onClick={() => setMediaTab(t)}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${mediaTab === t ? 'bg-surface shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {t === 'GALLERY' ? 'Gallery' : '360° Frames'}
+                  <span className="ml-1.5 text-muted-foreground font-normal">
+                    {shoe.media.filter((m) => m.type === t).length}
+                  </span>
+                </button>
+              ))}
+            </div>
             <button type="button" onClick={() => fileRef.current?.click()}
               disabled={uploading}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-sm hover:bg-muted transition-colors disabled:opacity-50">
               <Upload className="w-3.5 h-3.5" />
-              {uploading ? 'Uploading…' : 'Upload image'}
+              {uploading ? 'Uploading…' : mediaTab === 'FRAME_360' ? 'Upload frames' : 'Upload image'}
             </button>
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleImageUpload} />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp"
+              multiple={mediaTab === 'FRAME_360'} className="hidden" onChange={handleImageUpload} />
           </div>
-          {shoe.media.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No images yet. Upload the first one.</p>
+          {mediaTab === 'FRAME_360' && (
+            <p className="text-xs text-muted-foreground">Upload frames in order (e.g. 01.jpg → 24.jpg). They will display as a drag-to-rotate viewer on the storefront.</p>
+          )}
+          {shoe.media.filter((m) => m.type === mediaTab).length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {mediaTab === 'GALLERY' ? 'No gallery images yet.' : 'No 360° frames yet. Upload a sequence of images.'}
+            </p>
           ) : (
             <div className="grid grid-cols-4 gap-3">
-              {shoe.media.map((m) => (
+              {shoe.media.filter((m) => m.type === mediaTab).map((m) => (
                 <div key={m.id} className="relative group aspect-square rounded-lg overflow-hidden border bg-muted">
                   <Image src={m.url} alt={m.alt ?? ''} fill className="object-cover" sizes="150px" />
+                  {mediaTab === 'FRAME_360' && (
+                    <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">
+                      #{m.position + 1}
+                    </div>
+                  )}
                   <button type="button" onClick={() => handleDeleteMedia(m.id)}
                     className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                     <X className="w-3 h-3 text-white" />

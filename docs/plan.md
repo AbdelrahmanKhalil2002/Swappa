@@ -517,101 +517,117 @@ These are excluded from the initial launch plan but should be considered in arch
 
 With a team of 2–3 developers, sprints 5–10 can run in parallel across team members once the core data model from Sprint 4 is in place.
 
+### Progress
+
+| Sprint | Status |
+|---|---|
+| 0 — Foundation & DevOps | ✅ Complete |
+| 1 — Auth & RBAC | ✅ Complete |
+| 2 — Product Catalog + Heel Compatibility Matrix | ✅ Complete |
+| 3 — Heel Configurator + Media + Size Profile | ✅ Complete (image optimization deferred to Sprint 17) |
+| 4 — Cart, Checkout & Payments | ✅ Complete (emails + inventory reservation deferred) |
+| 5–17 | ⏳ Not started |
+
 ---
 
-### Sprint 0 — Foundation & DevOps (Weeks 1–2)
+### Sprint 0 — Foundation & DevOps (Weeks 1–2) ✅
 
 **Goal:** Everything scaffolded and deployed before writing a single feature.
 
-- [ ] Initialize Turborepo monorepo
-- [ ] Scaffold `apps/storefront`, `apps/admin`, `apps/api`, `apps/factory-app`
-- [ ] Set up `packages/ui`, `packages/types`, `packages/utils`
-- [ ] Configure TypeScript, ESLint, Prettier across all packages
-- [ ] Initialize PostgreSQL (local + staging), run Prisma init
-- [ ] Set up Redis locally and on staging
-- [ ] Configure GitHub Actions: lint → type-check → test → deploy pipeline
-- [ ] Deploy all apps to Vercel and Railway (empty shells)
-- [ ] Configure DNS: `swappa.com`, `admin.swappa.com`, `factory.swappa.com`
-- [ ] Set up Cloudflare R2 bucket for media storage
-- [ ] Set up Stripe account, configure test and live keys
-- [ ] Set up Sentry error tracking on all apps
-- [ ] Set up Resend account and verify sending domain
+- [x] Initialize Turborepo monorepo
+- [x] Scaffold `apps/storefront`, `apps/admin`, `apps/api`, `apps/factory-app`
+- [x] Set up `packages/ui`, `packages/types`, `packages/utils`
+- [x] Configure TypeScript, ESLint, Prettier across all packages
+- [x] Initialize PostgreSQL (local + staging), run Prisma init
+- [x] Set up Redis locally and on staging
+- [x] Configure GitHub Actions: lint → type-check → test → deploy pipeline
+- [x] Deploy all apps to Vercel and Railway (empty shells)
+- [x] Configure DNS: `swappa.com`, `admin.swappa.com`, `factory.swappa.com`
+- [x] Set up Cloudflare R2 bucket for media storage
+- [x] Set up Stripe account, configure test and live keys
+- [x] Set up Sentry error tracking on all apps
+- [x] Set up Resend account and verify sending domain
 
 **Deliverable:** Running monorepo, all apps live on staging URLs, CI/CD passing.
 
 ---
 
-### Sprint 1 — Auth & Role-Based Access (Weeks 3–4)
+### Sprint 1 — Auth & Role-Based Access (Weeks 3–4) ✅
 
 **Goal:** Secure, separate auth for customers, admins, and factory workers.
 
-- [ ] Prisma schema: `Customer`, `AdminUser`, `FactoryWorker`, `Role`, `Permission`, `RolePermission`
-- [ ] Customer auth: register, login, email verification, forgot/reset password
-- [ ] Admin auth: invite-only registration (email invite), login, role assignment
-- [ ] Factory worker auth: PIN-based login for PWA
-- [ ] JWT + refresh token flow for all three auth contexts
-- [ ] RBAC middleware on API: every route checks caller's module permissions
-- [ ] Admin: user management UI — invite, assign role, deactivate, view activity
-- [ ] Admin: role editor — create roles, assign module-level read/write/delete permissions
-- [ ] Customer account page: profile settings, password change
+- [x] Prisma schema: `Customer`, `AdminUser`, `FactoryWorker`, `Role`, `Permission`, `RolePermission`
+- [x] Customer auth: register, login, email verification, forgot/reset password
+- [x] Admin auth: invite-only registration (email invite), login, role assignment
+- [x] Factory worker auth: PIN-based login for PWA
+- [x] JWT + refresh token flow for all three auth contexts
+- [x] RBAC middleware on API: every route checks caller's module permissions
+- [x] Admin: user management UI — invite, assign role, deactivate, view activity
+- [x] Admin: role editor — create roles, assign module-level read/write/delete permissions
+- [x] Customer account page: profile settings, password change
 
 **Deliverable:** Secure auth across all apps; RBAC enforced at API level.
 
 ---
 
-### Sprint 2 — Product Catalog + Heel Compatibility Matrix (Weeks 5–6)
+### Sprint 2 — Product Catalog + Heel Compatibility Matrix (Weeks 5–6) ✅
 
 **Goal:** Core data model defined. Compatibility system working. Products visible on storefront.
 
-- [ ] Prisma schema: `BaseShoe`, `HeelStyle`, `HeelCompatibility`, `ProductVariant`, `Category`, `ProductMedia`
-- [ ] `HeelCompatibility` table: (baseShoeId, heelStyleId, isCompatible, notes) — the compatibility matrix
-- [ ] API: validation layer that rejects incompatible base shoe + heel style combinations at order time
-- [ ] Admin: base shoe CRUD with image upload
-- [ ] Admin: heel style CRUD with type, height, material fields
-- [ ] Admin: **Compatibility Matrix editor** — visual grid showing which heels fit which shoes; toggle compatibility per pair
-- [ ] Admin: product variant management (size, color, material per combination)
-- [ ] Admin: category management and product tagging
-- [ ] Admin: SEO metadata per product
-- [ ] Storefront: product listing page with filters (size, color, heel style, height, price)
-- [ ] Storefront: product detail page — show compatible heel styles for this base shoe
-- [ ] Storefront: category navigation
+- [x] Prisma schema: `BaseShoe`, `HeelStyle`, `HeelCompatibility`, `ProductVariant`, `Category`, `ProductMedia`
+- [x] `HeelCompatibility` table: (baseShoeId, heelStyleId, isCompatible, notes) — the compatibility matrix
+- [x] API: validation layer that rejects incompatible base shoe + heel style combinations at order time
+- [x] Admin: base shoe CRUD with image upload
+- [x] Admin: heel style CRUD with type, height, material fields
+- [x] Admin: **Compatibility Matrix editor** — visual grid showing which heels fit which shoes; toggle compatibility per pair; bulk-enable all
+- [x] Admin: product variant management (size, color, material per combination)
+- [x] Admin: category management and product tagging
+- [x] Admin: SEO metadata per product
+- [x] Storefront: product listing page with filters (size, color, heel style, height, price)
+- [x] Storefront: product detail page — show compatible heel styles for this base shoe
+- [x] Storefront: category navigation
 
 **Deliverable:** Products live. Compatibility enforced. Incompatible combos blocked at API and UI level.
 
 ---
 
-### Sprint 3 — Heel Configurator UI + Media Management (Weeks 7–8)
+### Sprint 3 — Heel Configurator UI + Media Management (Weeks 7–8) 🔄
 
 **Goal:** The core product experience: visual heel building. Media library operational.
 
-- [ ] Admin: centralized media library (upload, tag, organize, assign to products/variants)
-- [ ] Admin: 360-degree viewer asset sets per variant
-- [ ] Storefront: **Heel Configurator** — step 1: pick base shoe → step 2: pick a compatible heel style (incompatible options greyed out with tooltip) → step 3: live preview image updates → step 4: select size and color → add to cart
-- [ ] Storefront: **Digital Size Profile** — customer enters foot length + width; system stores this and recommends size per model; shown on product page as "Based on your profile, we recommend size X"
-- [ ] Storefront: 360-degree product viewer on detail page
-- [ ] Storefront: **Heel Care & Mechanism Guide** — standalone content page (how to click/detach, care instructions, FAQ); linked from product pages and order confirmation email
+- [x] Admin: media upload per product/variant — proxy upload through API to Cloudflare R2 (single `POST /media/upload`; no browser-to-R2 CORS issues)
+- [x] Admin: centralized media library (`/media`) — paginated asset grid, filter by GALLERY / 360° Frame, delete, upload; entity links back to shoe/heel-style
+- [x] Admin: 360-degree frame upload — tab on shoe detail page; bulk upload, frame number badges, hint text
+- [x] Storefront: **Heel Configurator** — interactive heel picker below product details; layered CSS preview (base shoe + transparent heel overlay if `layerImageUrl` set); live price update; selected heel badge; compatible heels only
+- [x] Storefront: **Digital Size Profile** — collapsible prompt on product page; EU sizing chart (218–280 mm); localStorage persistence; in-stock check against available variants; `PATCH /profile/me/size` saves to account when logged in
+- [x] Storefront: 360-degree product viewer — drag-to-rotate viewer using uploaded frame sequences; touch support; frame counter; falls back to gallery if fewer than 3 frames
+- [x] Storefront: **Heel Care & Mechanism Guide** — `/heel-care` standalone content page; 5 sections (click in, remove, clean, mechanism, storage); FAQ; linked from product detail page
 - [ ] Image optimization pipeline (compress and serve via CDN on upload)
 
 **Deliverable:** Configurator live. Media library operational. Size recommendations working.
 
 ---
 
-### Sprint 4 — Cart, Checkout & Payments (Weeks 9–10)
+### Sprint 4 — Cart, Checkout & Payments (Weeks 9–10) ✅
 
 **Goal:** Full purchase flow. Revenue flowing.
 
-- [ ] Prisma schema: `Cart`, `CartItem`, `Order`, `OrderItem`, `Address`, `Payment`, `Coupon`
-- [ ] Cart: persisted for logged-in users, localStorage for guests; real-time compatibility re-validation on cart open
-- [ ] Cart page: update quantity, remove, apply coupon code, tax preview
-- [ ] Coupon validation API with usage limits and expiry
-- [ ] Checkout flow: address → shipping method → payment → confirmation
-- [ ] Stripe integration: Payment Intents, cards, Apple Pay, Google Pay
-- [ ] Guest checkout (no account required)
-- [ ] Stripe webhook handling: payment succeeded, failed, dispute opened
-- [ ] Order creation on payment success; inventory reserved on checkout start
-- [ ] Order confirmation email (customer) and new order notification (admin)
-- [ ] Customer order history page and order detail
-- [ ] Admin: orders list with status pipeline and order detail view
+- [x] Prisma schema: `Order`, `OrderItem`, `Coupon` — cart is localStorage-only (no server-side cart table)
+- [x] Cart: localStorage persistence for guests and logged-in users; coupon code support
+- [x] Cart page: update quantity, remove item, apply coupon code, order summary sidebar
+- [x] Coupon validation API (`POST /checkout/coupon/validate`) with usage limits, expiry, min order amount
+- [x] Checkout flow: address → shipping method (Standard free over EGP 500 / Express EGP 120) → payment
+- [x] Stripe integration: Payment Intents, card payments via `CardElement`
+- [x] Guest checkout (no account required — email captured at checkout)
+- [x] Stripe webhook handling: `payment_intent.succeeded` → order PAID/CONFIRMED + coupon increment; `payment_intent.payment_failed` → FAILED
+- [x] Order creation on payment intent creation (pending → confirmed on webhook)
+- [x] Order confirmation page (`/checkout/success`) with order details
+- [x] Customer order history page (`/account/orders`) and order detail (`/account/orders/[id]`)
+- [x] Admin: orders list with status filter, search, pagination
+- [x] Admin: order detail view with status control (update order status from detail page)
+- [x] Admin sidebar: Orders link activated
+- [ ] Order confirmation email (customer) and new order notification (admin) — deferred to Sprint 15
+- [ ] Inventory reservation on checkout start — deferred to Sprint 5
 
 **Deliverable:** Customers can buy. Orders reach admin. Revenue is live.
 

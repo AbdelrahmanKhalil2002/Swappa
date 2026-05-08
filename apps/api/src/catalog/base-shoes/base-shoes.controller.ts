@@ -27,6 +27,13 @@ export class BaseShoesController {
     return this.shoes.findAll(query)
   }
 
+  @Get('id/:id')
+  @UseGuards(AdminJwtGuard, PermissionsGuard)
+  @RequirePermissions({ module: 'CATALOG', action: 'READ' })
+  findById(@Param('id') id: string) {
+    return this.shoes.findOne(id)
+  }
+
   @Get(':slug')
   findOne(@Param('slug') slug: string) {
     return this.shoes.findBySlug(slug)

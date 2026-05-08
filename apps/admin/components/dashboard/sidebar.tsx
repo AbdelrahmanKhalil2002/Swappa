@@ -4,6 +4,8 @@ import {
   BarChart3,
   Box,
   ChevronDown,
+  ClipboardList,
+  Images,
   Layers,
   LayoutDashboard,
   ShoppingBag,
@@ -83,12 +85,22 @@ export function Sidebar() {
           </NavLink>
         </NavSection>
 
+        <NavLink href="/media">
+          <Images className="w-4 h-4 shrink-0" />
+          Media library
+        </NavLink>
+
+        <NavLink href="/orders">
+          <ClipboardList className="w-4 h-4 shrink-0" />
+          Orders
+        </NavLink>
+
         {/* Future modules — greyed out */}
         <div className="pt-3 space-y-0.5">
           <p className="px-3 text-[10px] text-sidebar-foreground/30 uppercase tracking-wider mb-1">
             Coming soon
           </p>
-          {['Inventory', 'Orders', 'Manufacturing', 'Analytics'].map((m) => (
+          {['Inventory', 'Manufacturing', 'Analytics'].map((m) => (
             <div
               key={m}
               className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-sidebar-foreground/25 cursor-not-allowed"

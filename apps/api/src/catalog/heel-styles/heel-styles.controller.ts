@@ -25,6 +25,13 @@ export class HeelStylesController {
     return this.heels.findAll()
   }
 
+  @Get('id/:id')
+  @UseGuards(AdminJwtGuard, PermissionsGuard)
+  @RequirePermissions({ module: 'CATALOG', action: 'READ' })
+  findById(@Param('id') id: string) {
+    return this.heels.findOne(id)
+  }
+
   @Get(':slug')
   findOne(@Param('slug') slug: string) {
     return this.heels.findBySlug(slug)

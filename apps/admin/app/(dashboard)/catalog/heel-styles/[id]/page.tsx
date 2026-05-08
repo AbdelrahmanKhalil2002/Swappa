@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Upload, X } from 'lucide-react'
 import Image from 'next/image'
-import { get, patch, post, del } from '../../../../../lib/api-client'
+import { get, patch, del, upload } from '../../../../../lib/api-client'
 import { StatusBadge } from '../../../../../components/ui/status-badge'
 
 interface Media { id: string; url: string; alt: string | null }
@@ -35,7 +35,7 @@ export default function HeelStyleDetailPage() {
   })
 
   async function load() {
-    const h = await get<HeelStyle>(`/catalog/heel-styles/${id}`)
+    const h = await get<HeelStyle>(`/catalog/heel-styles/id/${id}`)
     setHeel(h)
     setForm({
       name: h.name, slug: h.slug, description: h.description ?? '',
@@ -68,11 +68,13 @@ export default function HeelStyleDetailPage() {
     const file = e.target.files?.[0]; if (!file) return
     setUploading(true)
     try {
-      const { uploadUrl, key, publicUrl } = await post<{ uploadUrl: string; key: string; publicUrl: string }>(
-        '/media/presign', { filename: file.name, contentType: file.type, folder: 'heel-styles' },
-      )
-      await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } })
-      await post('/media', { url: publicUrl, key, alt: file.name, position: heel!.media.length, heelStyleId: id })
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('folder', 'heel-styles')
+      fd.append('alt', file.name)
+      fd.append('position', String(heel!.media.length))
+      fd.append('heelStyleId', id)
+      await upload('/media/upload', fd)
       await load()
     } catch (err) { alert(err instanceof Error ? err.message : 'Upload failed') }
     finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }

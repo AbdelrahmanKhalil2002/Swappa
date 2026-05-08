@@ -3,16 +3,19 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import type { Metadata } from 'next'
+import { Viewer360 } from '../../../components/shop/viewer-360'
+import { HeelConfigurator } from '../../../components/shop/heel-configurator'
+import { SizeProfilePrompt } from '../../../components/shop/size-profile-prompt'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
 
-interface Media { url: string; alt: string | null; position: number }
+interface Media { url: string; alt: string | null; position: number; type: 'GALLERY' | 'FRAME_360' }
 interface Variant { id: string; size: string; color: string; sku: string; stock: number }
 interface CompatibleHeel {
   heelStyleId: string
   heelStyle: {
     id: string; name: string; slug: string; type: string; heightCm: number
-    addedPrice: string
+    addedPrice: string; layerImageUrl: string | null
     media: Media[]
   }
 }
@@ -29,10 +32,7 @@ interface Shoe {
 
 async function fetchShoe(slug: string): Promise<Shoe | null> {
   try {
-    const res = await fetch(`${API_URL}/api/v1/catalog/shoes/${slug}`, {
-      next: { revalidate: 60 },
-    })
-    if (res.status === 404) return null
+    const res = await fetch(`${API_URL}/api/v1/catalog/shoes/${slug}`, { next: { revalidate: 60 } })
     if (!res.ok) return null
     return res.json()
   } catch {
@@ -40,11 +40,7 @@ async function fetchShoe(slug: string): Promise<Shoe | null> {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const shoe = await fetchShoe(slug)
   if (!shoe) return { title: 'Not found' }
@@ -54,20 +50,18 @@ export async function generateMetadata({
   }
 }
 
-export default async function ProductPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const shoe = await fetchShoe(slug)
-
   if (!shoe || shoe.status !== 'ACTIVE') notFound()
 
-  const compatibleHeels = shoe.compatibility.filter((c) => c.heelStyle)
+  const galleryImages = shoe.media.filter((m) => m.type === 'GALLERY')
+  const frames360 = shoe.media.filter((m) => m.type === 'FRAME_360').sort((a, b) => a.position - b.position)
+  const compatibleHeels = shoe.compatibility.filter((c) => c.heelStyle).map((c) => c.heelStyle)
   const sizes = [...new Set(shoe.variants.map((v) => v.size))].sort()
   const colors = [...new Set(shoe.variants.map((v) => v.color))]
-  const coverImage = shoe.media[0]
+
+  const coverImage = galleryImages[0]
 
   return (
     <div className="min-h-screen">
@@ -92,27 +86,30 @@ export default async function ProductPage({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 xl:gap-16">
-          {/* Image gallery */}
+          {/* Left: 360 viewer if frames exist, else gallery */}
           <div className="space-y-3">
-            <div className="relative aspect-square bg-muted rounded-2xl overflow-hidden">
-              {coverImage ? (
-                <Image
-                  src={coverImage.url}
-                  alt={coverImage.alt ?? shoe.name}
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-muted-foreground/30 text-sm">No image</span>
-                </div>
-              )}
-            </div>
-            {shoe.media.length > 1 && (
+            {frames360.length >= 3 ? (
+              <Viewer360 frames={frames360} />
+            ) : (
+              <div className="relative aspect-square bg-muted rounded-2xl overflow-hidden">
+                {coverImage ? (
+                  <Image
+                    src={coverImage.url}
+                    alt={coverImage.alt ?? shoe.name}
+                    fill priority
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-muted-foreground/30 text-sm">No image</span>
+                  </div>
+                )}
+              </div>
+            )}
+            {galleryImages.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
-                {shoe.media.slice(1, 5).map((m, i) => (
+                {galleryImages.slice(1, 5).map((m, i) => (
                   <div key={i} className="relative aspect-square bg-muted rounded-lg overflow-hidden">
                     <Image src={m.url} alt={m.alt ?? ''} fill className="object-cover" sizes="80px" />
                   </div>
@@ -121,12 +118,10 @@ export default async function ProductPage({
             )}
           </div>
 
-          {/* Details */}
+          {/* Right: details */}
           <div className="lg:pt-2">
             {shoe.category && (
-              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-                {shoe.category.name}
-              </p>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">{shoe.category.name}</p>
             )}
             <h1 className="font-display text-4xl font-light leading-tight">{shoe.name}</h1>
             <p className="mt-3 text-2xl font-light">EGP {Number(shoe.basePrice).toLocaleString()}</p>
@@ -141,14 +136,12 @@ export default async function ProductPage({
                 <p className="text-xs font-semibold uppercase tracking-wider mb-2">Size</p>
                 <div className="flex flex-wrap gap-2">
                   {sizes.map((s) => (
-                    <button
-                      key={s}
-                      className="px-3 py-1.5 border rounded-lg text-sm hover:border-foreground transition-colors"
-                    >
+                    <button key={s} className="px-3 py-1.5 border rounded-lg text-sm hover:border-foreground transition-colors">
                       {s}
                     </button>
                   ))}
                 </div>
+                <SizeProfilePrompt availableSizes={sizes} />
               </div>
             )}
 
@@ -158,10 +151,7 @@ export default async function ProductPage({
                 <p className="text-xs font-semibold uppercase tracking-wider mb-2">Colour</p>
                 <div className="flex flex-wrap gap-2">
                   {colors.map((c) => (
-                    <button
-                      key={c}
-                      className="px-3 py-1.5 border rounded-lg text-sm hover:border-foreground transition-colors"
-                    >
+                    <button key={c} className="px-3 py-1.5 border rounded-lg text-sm hover:border-foreground transition-colors">
                       {c}
                     </button>
                   ))}
@@ -169,56 +159,34 @@ export default async function ProductPage({
               </div>
             )}
 
-            {/* Add to cart — placeholder for Sprint 5 */}
-            <button
-              disabled
-              className="mt-8 w-full py-3.5 bg-foreground text-background font-medium rounded-xl opacity-50 cursor-not-allowed"
-            >
+            <button disabled className="mt-8 w-full py-3.5 bg-foreground text-background font-medium rounded-xl opacity-50 cursor-not-allowed">
               Add to cart — available soon
             </button>
 
-            {/* Compatible heels count */}
             {compatibleHeels.length > 0 && (
               <p className="mt-3 text-center text-xs text-muted-foreground">
                 Compatible with {compatibleHeels.length} heel style{compatibleHeels.length !== 1 ? 's' : ''}
               </p>
             )}
+
+            {/* Heel Care link */}
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              New to swappable heels?{' '}
+              <Link href="/heel-care" className="underline hover:text-foreground transition-colors">
+                Read the Heel Care Guide →
+              </Link>
+            </p>
           </div>
         </div>
 
-        {/* Compatible heel styles */}
+        {/* Heel Configurator */}
         {compatibleHeels.length > 0 && (
-          <section className="mt-16 pt-12 border-t">
-            <h2 className="font-display text-2xl font-light mb-6">Compatible heel styles</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {compatibleHeels.map(({ heelStyle }) => (
-                <Link key={heelStyle.id} href={`/heels/${heelStyle.slug}`} className="group block">
-                  <div className="relative aspect-square bg-muted rounded-xl overflow-hidden mb-2">
-                    {heelStyle.media[0] ? (
-                      <Image
-                        src={heelStyle.media[0].url}
-                        alt={heelStyle.media[0].alt ?? heelStyle.name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        sizes="(max-width: 640px) 50vw, 25vw"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-muted-foreground/30 text-xs">No image</span>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-sm font-medium group-hover:text-accent transition-colors leading-snug">
-                    {heelStyle.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {heelStyle.type.charAt(0) + heelStyle.type.slice(1).toLowerCase()} · {heelStyle.heightCm} cm
-                    {Number(heelStyle.addedPrice) > 0 && ` · +EGP ${Number(heelStyle.addedPrice).toLocaleString()}`}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </section>
+          <HeelConfigurator
+            baseShoeImage={coverImage?.url ?? null}
+            baseShoeAlt={shoe.name}
+            basePrice={Number(shoe.basePrice)}
+            heels={compatibleHeels}
+          />
         )}
       </div>
     </div>

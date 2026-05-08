@@ -30,6 +30,34 @@ enum HeelMaterial {
   RUBBER
 }
 
+enum MediaType {
+  GALLERY
+  FRAME_360
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+  FREE_SHIPPING
+}
+
 // ─── Admin RBAC Enums ─────────────────────────────────────────────────────────
 
 enum AdminModule {
@@ -129,7 +157,10 @@ model Customer {
   verifyExpiresAt DateTime?
   resetToken      String?
   resetExpiresAt  DateTime?
+  footLengthMm    Int?
+  footWidthMm     Int?
   refreshTokens   CustomerRefreshToken[]
+  orders          Order[]
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
 
@@ -217,10 +248,12 @@ model HeelStyle {
   heightCm       Float
   material       HeelMaterial?
   addedPrice     Decimal             @default(0) @db.Decimal(10, 2)
+  layerImageUrl  String?
   seoTitle       String?
   seoDescription String?
   media          ProductMedia[]
   compatibility  HeelCompatibility[]
+  orderItems     OrderItem[]
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
 
@@ -243,16 +276,17 @@ model HeelCompatibility {
 }
 
 model ProductVariant {
-  id         String   @id @default(cuid())
+  id         String      @id @default(cuid())
   baseShoeId String
-  baseShoe   BaseShoe @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
+  baseShoe   BaseShoe    @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
   size       String
   color      String
   material   String?
-  sku        String   @unique
-  stock      Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  sku        String      @unique
+  stock      Int         @default(0)
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@map("product_variants")
 }
@@ -263,6 +297,7 @@ model ProductMedia {
   key         String
   alt         String?
   position    Int        @default(0)
+  type        MediaType  @default(GALLERY)
   baseShoeId  String?
   heelStyleId String?
   baseShoe    BaseShoe?  @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
@@ -270,4 +305,73 @@ model ProductMedia {
   createdAt   DateTime   @default(now())
 
   @@map("product_media")
+}
+
+// ─── Orders & Checkout ────────────────────────────────────────────────────────
+
+model Coupon {
+  id             String     @id @default(cuid())
+  code           String     @unique
+  type           CouponType
+  value          Decimal    @db.Decimal(10, 2)
+  minOrderAmount Decimal?   @db.Decimal(10, 2)
+  maxUses        Int?
+  usedCount      Int        @default(0)
+  expiresAt      DateTime?
+  isActive       Boolean    @default(true)
+  orders         Order[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("coupons")
+}
+
+model Order {
+  id                    String        @id @default(cuid())
+  orderNumber           String        @unique
+  customerId            String?
+  customer              Customer?     @relation(fields: [customerId], references: [id])
+  email                 String
+  firstName             String
+  lastName              String
+  phone                 String
+  addressLine1          String
+  addressLine2          String?
+  city                  String
+  governorate           String
+  status                OrderStatus   @default(PENDING)
+  paymentStatus         PaymentStatus @default(PENDING)
+  stripePaymentIntentId String?       @unique
+  subtotal              Decimal       @db.Decimal(10, 2)
+  shippingCost          Decimal       @default(0) @db.Decimal(10, 2)
+  discountAmount        Decimal       @default(0) @db.Decimal(10, 2)
+  total                 Decimal       @db.Decimal(10, 2)
+  couponId              String?
+  coupon                Coupon?       @relation(fields: [couponId], references: [id])
+  shippingMethod        String        @default("standard")
+  notes                 String?
+  items                 OrderItem[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String         @id @default(cuid())
+  orderId       String
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId     String
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  heelStyleId   String?
+  heelStyle     HeelStyle?     @relation(fields: [heelStyleId], references: [id])
+  quantity      Int
+  unitPrice     Decimal        @db.Decimal(10, 2)
+  heelPrice     Decimal        @default(0) @db.Decimal(10, 2)
+  lineTotal     Decimal        @db.Decimal(10, 2)
+  snapshotName  String
+  snapshotSku   String
+  createdAt     DateTime       @default(now())
+
+  @@map("order_items")
 }

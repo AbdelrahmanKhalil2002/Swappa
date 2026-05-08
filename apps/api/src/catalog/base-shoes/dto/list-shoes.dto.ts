@@ -1,4 +1,4 @@
-import { ProductStatus } from '@prisma/client'
+import { HeelType, ProductStatus } from '@prisma/client'
 import { Type } from 'class-transformer'
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator'
 
@@ -10,6 +10,10 @@ export class ListShoesDto {
   @IsOptional()
   @IsString()
   categoryId?: string
+
+  @IsOptional()
+  @IsEnum(HeelType)
+  heelType?: HeelType
 
   @IsOptional()
   @IsString()

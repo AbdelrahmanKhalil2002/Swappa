@@ -33,7 +33,7 @@ export default function CompatibilityPage() {
     setLoading(true)
     try {
       const [shoeData, compat] = await Promise.all([
-        get<Shoe>(`/catalog/shoes/${id}`),
+        get<Shoe>(`/catalog/shoes/id/${id}`),
         get<CompatibilityRow[]>(`/catalog/shoes/${id}/compatibility`),
       ])
       setShoe(shoeData)

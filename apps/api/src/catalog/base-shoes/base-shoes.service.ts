@@ -41,6 +41,9 @@ export class BaseShoesService {
     if (query.status) where.status = query.status
     if (query.categoryId) where.categoryId = query.categoryId
     if (query.search) where.name = { contains: query.search, mode: 'insensitive' }
+    if (query.heelType) {
+      where.compatibility = { some: { isCompatible: true, heelStyle: { type: query.heelType } } }
+    }
 
     const [items, total] = await Promise.all([
       this.prisma.baseShoe.findMany({
@@ -77,7 +80,13 @@ export class BaseShoesService {
   }
 
   async findOne(id: string) {
-    const shoe = await this.prisma.baseShoe.findUnique({ where: { id }, include: SHOE_INCLUDE })
+    const shoe = await this.prisma.baseShoe.findUnique({
+      where: { id },
+      include: {
+        ...SHOE_INCLUDE,
+        variants: { orderBy: [{ size: 'asc' }, { color: 'asc' }] },
+      },
+    })
     if (!shoe) throw new NotFoundException('Shoe not found')
     return shoe
   }

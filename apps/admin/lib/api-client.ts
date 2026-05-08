@@ -82,3 +82,26 @@ export function put<T>(path: string, body?: unknown, options?: RequestInit): Pro
 export function del<T>(path: string, options?: RequestInit): Promise<T> {
   return apiRequest<T>(path, { ...options, method: 'DELETE' })
 }
+
+export async function upload<T>(path: string, formData: FormData): Promise<T> {
+  const url = `${API_URL}/api/v1${path}`
+  const token = typeof window !== 'undefined' ? sessionStorage.getItem(SESSION_KEY) : null
+  const res = await fetch(url, {
+    method: 'POST',
+    credentials: 'include',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  })
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`
+    try {
+      const body = await res.json()
+      if (typeof body === 'object' && body !== null && 'message' in body) {
+        const raw = (body as { message: string | string[] }).message
+        message = Array.isArray(raw) ? raw.join(', ') : raw
+      }
+    } catch { /* ignore */ }
+    throw new ApiError(message, res.status)
+  }
+  return res.json() as Promise<T>
+}

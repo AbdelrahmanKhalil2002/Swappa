@@ -6,6 +6,10 @@ import { MailModule } from './mail/mail.module'
 import { AuthModule } from './auth/auth.module'
 import { CatalogModule } from './catalog/catalog.module'
 import { MediaModule } from './media/media.module'
+import { ProfileModule } from './profile/profile.module'
+import { CheckoutModule } from './checkout/checkout.module'
+import { OrdersModule } from './orders/orders.module'
+import { WebhooksModule } from './webhooks/webhooks.module'
 
 @Module({
   imports: [
@@ -18,6 +22,10 @@ import { MediaModule } from './media/media.module'
     AuthModule,
     CatalogModule,
     MediaModule,
+    ProfileModule,
+    CheckoutModule,
+    OrdersModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
 })

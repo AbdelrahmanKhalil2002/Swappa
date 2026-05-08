@@ -40,6 +40,10 @@ export class CreateHeelStyleDto {
 
   @IsOptional()
   @IsString()
+  layerImageUrl?: string
+
+  @IsOptional()
+  @IsString()
   @MaxLength(120)
   seoTitle?: string
 

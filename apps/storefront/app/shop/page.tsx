@@ -45,7 +45,7 @@ async function fetchProducts(params: Record<string, string>): Promise<PageData> 
 async function fetchCategories(): Promise<Category[]> {
   try {
     const res = await fetch(`${API_URL}/api/v1/catalog/categories`, {
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
     })
     if (!res.ok) throw new Error()
     return res.json()
@@ -61,6 +61,7 @@ export const metadata = {
 
 interface SearchParams {
   category?: string
+  heelType?: string
   search?: string
   page?: string
 }
@@ -73,6 +74,7 @@ export default async function ShopPage({
   const params = await searchParams
   const query: Record<string, string> = {}
   if (params.category) query.categoryId = params.category
+  if (params.heelType) query.heelType = params.heelType
   if (params.search) query.search = params.search
   if (params.page) query.page = params.page
 

@@ -1,4 +1,5 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator'
+import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator'
+import { MediaType } from '@prisma/client'
 
 export class SaveMediaDto {
   @IsString()
@@ -15,6 +16,10 @@ export class SaveMediaDto {
   @IsInt()
   @Min(0)
   position?: number
+
+  @IsOptional()
+  @IsEnum(MediaType)
+  type?: MediaType
 
   @IsOptional()
   @IsString()
