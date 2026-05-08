@@ -11,11 +11,14 @@
   },
   "dependencies": {
     "@antigravity/types": "workspace:*",
-    "@antigravity/utils": "workspace:*",
     "@antigravity/ui": "workspace:*",
+    "@antigravity/utils": "workspace:*",
+    "@hookform/resolvers": "^5.2.2",
     "next": "^15.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.75.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

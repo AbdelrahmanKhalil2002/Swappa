@@ -7,3 +7,5 @@
 // Then move the generated component here and re-export it.
 
 export { Button, type ButtonProps } from './components/button'
+export { FormInput, type FormInputProps } from './components/form-input'
+export { AuthCard, type AuthCardProps } from './components/auth-card'

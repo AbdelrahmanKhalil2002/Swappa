@@ -24,6 +24,6 @@
   },
   "packageManager": "pnpm@10.33.4",
   "pnpm": {
-    "onlyBuiltDependencies": ["@nestjs/core", "sharp", "esbuild"]
+    "onlyBuiltDependencies": ["@nestjs/core", "sharp", "esbuild", "prisma", "@prisma/engines"]
   }
 }

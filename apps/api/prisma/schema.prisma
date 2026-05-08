@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AdminModule {
+  DASHBOARD
+  CATALOG
+  MEDIA
+  INVENTORY
+  RAW_MATERIALS
+  MANUFACTURING
+  QUALITY_CONTROL
+  PROCUREMENT
+  ORDERS
+  RETURNS
+  SHIPPING
+  CRM
+  SUPPORT
+  REVIEWS
+  PROMOTIONS
+  ACCOUNTING
+  HR
+  NOTIFICATIONS
+  ANALYTICS
+  AUDIT_LOGS
+  INTEGRATIONS
+  SETTINGS
+}
+
+enum AdminAction {
+  READ
+  WRITE
+  DELETE
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false)
+  permissions RolePermission[]
+  adminUsers  AdminUser[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("roles")
+}
+
+model RolePermission {
+  id     String      @id @default(cuid())
+  roleId String
+  module AdminModule
+  action AdminAction
+  role   Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, module, action])
+  @@map("role_permissions")
+}
+
+model AdminUser {
+  id              String              @id @default(cuid())
+  email           String              @unique
+  password        String?
+  firstName       String?
+  lastName        String?
+  isActive        Boolean             @default(true)
+  inviteToken     String?
+  inviteExpiresAt DateTime?
+  resetToken      String?
+  resetExpiresAt  DateTime?
+  roleId          String
+  role            Role                @relation(fields: [roleId], references: [id])
+  refreshTokens   AdminRefreshToken[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@map("admin_users")
+}
+
+model AdminRefreshToken {
+  id          String    @id @default(cuid())
+  tokenHash   String    @unique
+  adminUserId String
+  adminUser   AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+
+  @@map("admin_refresh_tokens")
+}
+
+model Customer {
+  id              String                 @id @default(cuid())
+  email           String                 @unique
+  password        String
+  firstName       String
+  lastName        String
+  emailVerified   Boolean                @default(false)
+  verifyToken     String?
+  verifyExpiresAt DateTime?
+  resetToken      String?
+  resetExpiresAt  DateTime?
+  refreshTokens   CustomerRefreshToken[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@map("customers")
+}
+
+model CustomerRefreshToken {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@map("customer_refresh_tokens")
+}
+
+model FactoryWorker {
+  id            String                @id @default(cuid())
+  name          String
+  pin           String
+  isActive      Boolean               @default(true)
+  refreshTokens FactoryRefreshToken[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@map("factory_workers")
+}
+
+model FactoryRefreshToken {
+  id              String        @id @default(cuid())
+  tokenHash       String        @unique
+  factoryWorkerId String
+  factoryWorker   FactoryWorker @relation(fields: [factoryWorkerId], references: [id], onDelete: Cascade)
+  expiresAt       DateTime
+  createdAt       DateTime      @default(now())
+
+  @@map("factory_refresh_tokens")
+}
