@@ -58,7 +58,7 @@ async function main() {
   const existingAdminCount = await prisma.adminUser.count()
 
   if (existingAdminCount === 0) {
-    const email = process.env.SUPERADMIN_EMAIL ?? 'admin@antigravity.com'
+    const email = process.env.SUPERADMIN_EMAIL ?? 'admin@swappa.com'
     const password = process.env.SUPERADMIN_PASSWORD ?? 'Admin@123456!'
     const hashedPassword = await bcrypt.hash(password, 12)
 

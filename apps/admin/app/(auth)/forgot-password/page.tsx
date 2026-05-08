@@ -38,7 +38,7 @@ export default function AdminForgotPasswordPage() {
       {/* Brand */}
       <div className="mb-8 text-center">
         <span className="text-xs font-semibold tracking-[0.3em] text-[#C9A96E] uppercase">
-          ANTIGRAVITY
+          SWAPPA
         </span>
         <p className="mt-1 text-xs text-[#666]">Admin Panel</p>
       </div>
@@ -83,7 +83,7 @@ export default function AdminForgotPasswordPage() {
                   id="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="admin@antigravity.com"
+                  placeholder="admin@swappa.com"
                   aria-invalid={!!errors.email}
                   className={`w-full rounded-sm border px-3.5 py-2.5 text-sm text-white placeholder:text-[#555] bg-[#1A1A1A] outline-none transition-colors focus:ring-1 ${errors.email ? 'border-red-600 focus:border-red-600 focus:ring-red-600/20' : 'border-[#333] focus:border-[#C9A96E] focus:ring-[#C9A96E]/20'}`}
                   {...register('email')}

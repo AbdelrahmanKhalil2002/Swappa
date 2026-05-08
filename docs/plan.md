@@ -1,13 +1,13 @@
-# Antigravity — Project Plan
+# Swappa — Project Plan
 
 ## Project Overview
 
-Antigravity is an eCommerce platform for interchangeable-heel shoes. The product's core differentiator is a modular heel system — customers configure and purchase base shoes paired with swappable heel styles that physically click in and out.
+Swappa is an eCommerce platform for interchangeable-heel shoes. The product's core differentiator is a modular heel system — customers configure and purchase base shoes paired with swappable heel styles that physically click in and out.
 
 The platform consists of two web applications under one domain:
 
-- **Storefront** — `antigravity.com` — customer-facing shopping experience
-- **Admin Panel** — `admin.antigravity.com` — full ERP-style operations hub
+- **Storefront** — `swappa.com` — customer-facing shopping experience
+- **Admin Panel** — `admin.swappa.com` — full ERP-style operations hub
 
 Both apps share a single backend API and database. All modules stay in sync — an order placed on the storefront updates inventory, triggers manufacturing demand, feeds accounting, and logs to audit trails automatically.
 
@@ -29,9 +29,9 @@ monorepo/
 ```
 
 **Domain setup:**
-- `antigravity.com` → Storefront
-- `admin.antigravity.com` → Admin panel
-- `factory.antigravity.com` → Factory floor PWA (internal)
+- `swappa.com` → Storefront
+- `admin.swappa.com` → Admin panel
+- `factory.swappa.com` → Factory floor PWA (internal)
 - All served behind Cloudflare reverse proxy
 
 ---
@@ -162,7 +162,7 @@ Track everything that goes into making the shoes — not just finished goods.
 
 #### Module 6 — Manufacturing Module
 
-Full production lifecycle tracking. This is what separates Antigravity from a simple inventory system.
+Full production lifecycle tracking. This is what separates Swappa from a simple inventory system.
 
 **Production Stages (configurable per product):**
 ```
@@ -531,7 +531,7 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 - [ ] Set up Redis locally and on staging
 - [ ] Configure GitHub Actions: lint → type-check → test → deploy pipeline
 - [ ] Deploy all apps to Vercel and Railway (empty shells)
-- [ ] Configure DNS: `antigravity.com`, `admin.antigravity.com`, `factory.antigravity.com`
+- [ ] Configure DNS: `swappa.com`, `admin.swappa.com`, `factory.swappa.com`
 - [ ] Set up Cloudflare R2 bucket for media storage
 - [ ] Set up Stripe account, configure test and live keys
 - [ ] Set up Sentry error tracking on all apps
@@ -884,7 +884,7 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 
 ### Sprint 15 — External Integrations (Weeks 31–32)
 
-**Goal:** Antigravity connected to the broader tools ecosystem.
+**Goal:** Swappa connected to the broader tools ecosystem.
 
 - [ ] Shipping: EasyPost or ShipStation final integration with DHL, Aramex, Bosta, SMSA tested end-to-end
 - [ ] Payment: PayPal as secondary option (Stripe primary confirmed)
@@ -895,7 +895,7 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 - [ ] Admin: webhooks manager — configure outbound webhooks per system event (order placed, stock low, production completed) to any URL
 - [ ] Accounting export: QuickBooks / Xero format download from finance module
 
-**Deliverable:** Antigravity connected to shipping, marketing, and analytics ecosystem.
+**Deliverable:** Swappa connected to shipping, marketing, and analytics ecosystem.
 
 ---
 
@@ -934,7 +934,7 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 - [ ] Smoke test checklist on live production (place real test order, process return, check admin)
 - [ ] Runbook documented for on-call incidents
 
-**Deliverable:** Antigravity live in production. Monitored, tested, fast.
+**Deliverable:** Swappa live in production. Monitored, tested, fast.
 
 ---
 

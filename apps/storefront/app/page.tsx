@@ -3,7 +3,7 @@ export default function HomePage() {
     <main className="min-h-screen flex flex-col items-center justify-center gap-6 px-6">
       <div className="text-center space-y-3">
         <h1 className="font-display text-7xl font-light tracking-tight leading-none">
-          Antigravity
+          Swappa
         </h1>
         <p className="text-muted-foreground text-lg font-light tracking-wide uppercase text-sm">
           Interchangeable Heels

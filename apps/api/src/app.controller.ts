@@ -6,7 +6,7 @@ export class AppController {
   health() {
     return {
       status: 'ok',
-      service: 'antigravity-api',
+      service: 'swappa-api',
       timestamp: new Date().toISOString(),
     }
   }

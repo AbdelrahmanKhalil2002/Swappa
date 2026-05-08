@@ -11,10 +11,10 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Antigravity Admin',
-    template: '%s — Antigravity Admin',
+    default: 'Swappa Admin',
+    template: '%s — Swappa Admin',
   },
-  description: 'Antigravity operations and management panel.',
+  description: 'Swappa operations and management panel.',
   robots: { index: false, follow: false },
 }
 

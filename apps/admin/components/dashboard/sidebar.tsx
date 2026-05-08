@@ -49,7 +49,7 @@ export function Sidebar() {
       <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-baseline gap-2">
           <span className="font-display tracking-widest text-sidebar-foreground text-base uppercase">
-            Antigravity
+            Swappa
           </span>
           <span className="text-[10px] text-accent font-sans font-medium tracking-wider uppercase">
             Admin

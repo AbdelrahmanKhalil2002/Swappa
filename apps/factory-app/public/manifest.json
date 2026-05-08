@@ -1,7 +1,7 @@
 {
-  "name": "Antigravity Factory",
+  "name": "Swappa Factory",
   "short_name": "AG Factory",
-  "description": "Antigravity factory floor operations app",
+  "description": "Swappa factory floor operations app",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

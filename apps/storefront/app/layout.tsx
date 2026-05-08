@@ -18,14 +18,14 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Antigravity — Interchangeable Heels',
-    template: '%s — Antigravity',
+    default: 'Swappa — Interchangeable Heels',
+    template: '%s — Swappa',
   },
   description: 'Design your perfect heel. Change your look in seconds.',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    siteName: 'Antigravity',
+    siteName: 'Swappa',
   },
 }
 

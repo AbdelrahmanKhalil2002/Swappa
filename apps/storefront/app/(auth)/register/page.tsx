@@ -74,7 +74,7 @@ export default function RegisterPage() {
         {/* Brand */}
         <div className="mb-8 text-center">
           <span className="font-display text-xs font-semibold tracking-[0.25em] text-[#0F0F0F] uppercase">
-            ANTIGRAVITY
+            SWAPPA
           </span>
         </div>
 
@@ -82,7 +82,7 @@ export default function RegisterPage() {
         <div className="rounded-sm bg-white px-8 py-10 shadow-sm">
           <div className="mb-8">
             <h1 className="font-display text-2xl font-light text-[#0F0F0F]">Create an account</h1>
-            <p className="mt-1.5 text-sm text-[#8A8480]">Join Antigravity today</p>
+            <p className="mt-1.5 text-sm text-[#8A8480]">Join Swappa today</p>
           </div>
 
           {serverError && (

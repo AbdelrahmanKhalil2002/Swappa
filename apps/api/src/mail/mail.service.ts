@@ -12,7 +12,7 @@ export class MailService {
 
   constructor(private readonly config: ConfigService) {
     this.resend = new Resend(this.config.get<string>('RESEND_API_KEY'))
-    this.from = this.config.get<string>('EMAIL_FROM') ?? 'noreply@antigravity.com'
+    this.from = this.config.get<string>('EMAIL_FROM') ?? 'noreply@swappa.com'
     this.storefrontUrl = this.config.get<string>('STOREFRONT_URL') ?? 'http://localhost:3000'
     this.adminUrl = this.config.get<string>('ADMIN_URL') ?? 'http://localhost:3001'
   }
@@ -24,7 +24,7 @@ export class MailService {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Antigravity</title>
+  <title>Swappa</title>
 </head>
 <body style="margin:0;padding:0;background-color:#F5F2EE;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F2EE;padding:40px 0;">
@@ -34,7 +34,7 @@ export class MailService {
           <!-- Brand header -->
           <tr>
             <td align="center" style="padding:0 0 32px 0;">
-              <span style="font-family:'Georgia',serif;font-size:13px;letter-spacing:0.25em;text-transform:uppercase;color:#0F0F0F;font-weight:600;">ANTIGRAVITY</span>
+              <span style="font-family:'Georgia',serif;font-size:13px;letter-spacing:0.25em;text-transform:uppercase;color:#0F0F0F;font-weight:600;">SWAPPA</span>
             </td>
           </tr>
           <!-- Card -->
@@ -47,7 +47,7 @@ export class MailService {
           <tr>
             <td align="center" style="padding:28px 0 0 0;">
               <p style="margin:0;font-size:12px;color:#8A8480;letter-spacing:0.02em;">
-                &copy; ${new Date().getFullYear()} Antigravity. All rights reserved.
+                &copy; ${new Date().getFullYear()} Swappa. All rights reserved.
               </p>
             </td>
           </tr>
@@ -75,7 +75,7 @@ export class MailService {
 
     const content = `
 <h1 style="margin:0 0 8px 0;font-family:'Georgia',serif;font-size:26px;font-weight:400;color:#0F0F0F;letter-spacing:0.01em;">Verify your email</h1>
-<p style="margin:0 0 24px 0;font-size:15px;color:#4A4540;line-height:1.6;">Hi ${firstName}, welcome to Antigravity. Please verify your email address to complete your registration.</p>
+<p style="margin:0 0 24px 0;font-size:15px;color:#4A4540;line-height:1.6;">Hi ${firstName}, welcome to Swappa. Please verify your email address to complete your registration.</p>
 ${this.ctaButton(link, 'Verify Email')}
 <p style="margin:24px 0 0 0;font-size:13px;color:#8A8480;line-height:1.6;">This link expires in 24 hours. If you did not create an account, you can safely ignore this email.</p>
 <p style="margin:16px 0 0 0;font-size:12px;color:#B0AAA4;">Or copy this link: <a href="${link}" style="color:#C9A96E;text-decoration:none;">${link}</a></p>`
@@ -84,7 +84,7 @@ ${this.ctaButton(link, 'Verify Email')}
       await this.resend.emails.send({
         from: this.from,
         to: email,
-        subject: 'Verify your Antigravity account',
+        subject: 'Verify your Swappa account',
         html: this.baseTemplate(content),
       })
     } catch (err) {
@@ -112,7 +112,7 @@ ${this.ctaButton(link, 'Reset Password')}
       await this.resend.emails.send({
         from: this.from,
         to: email,
-        subject: 'Reset your Antigravity password',
+        subject: 'Reset your Swappa password',
         html: this.baseTemplate(content),
       })
     } catch (err) {
@@ -125,7 +125,7 @@ ${this.ctaButton(link, 'Reset Password')}
 
     const content = `
 <h1 style="margin:0 0 8px 0;font-family:'Georgia',serif;font-size:26px;font-weight:400;color:#0F0F0F;letter-spacing:0.01em;">You've been invited</h1>
-<p style="margin:0 0 24px 0;font-size:15px;color:#4A4540;line-height:1.6;">${inviterName} has invited you to join the Antigravity admin panel. Click the button below to set up your account.</p>
+<p style="margin:0 0 24px 0;font-size:15px;color:#4A4540;line-height:1.6;">${inviterName} has invited you to join the Swappa admin panel. Click the button below to set up your account.</p>
 ${this.ctaButton(link, 'Accept Invitation')}
 <p style="margin:24px 0 0 0;font-size:13px;color:#8A8480;line-height:1.6;">This invitation expires in 72 hours. If you were not expecting this invitation, you can safely ignore this email.</p>
 <p style="margin:16px 0 0 0;font-size:12px;color:#B0AAA4;">Or copy this link: <a href="${link}" style="color:#C9A96E;text-decoration:none;">${link}</a></p>`
@@ -134,7 +134,7 @@ ${this.ctaButton(link, 'Accept Invitation')}
       await this.resend.emails.send({
         from: this.from,
         to: email,
-        subject: `You've been invited to Antigravity Admin`,
+        subject: `You've been invited to Swappa Admin`,
         html: this.baseTemplate(content),
       })
     } catch (err) {

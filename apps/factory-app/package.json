@@ -1,5 +1,5 @@
 {
-  "name": "@antigravity/factory-app",
+  "name": "@swappa/factory-app",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,9 +10,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@antigravity/types": "workspace:*",
-    "@antigravity/utils": "workspace:*",
-    "@antigravity/ui": "workspace:*",
+    "@swappa/types": "workspace:*",
+    "@swappa/utils": "workspace:*",
+    "@swappa/ui": "workspace:*",
     "@ducanh2912/next-pwa": "^10.2.9",
     "next": "^15.3.0",
     "react": "^19.0.0",

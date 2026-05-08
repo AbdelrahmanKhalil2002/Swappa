@@ -1,4 +1,4 @@
-// Shared UI component library for Antigravity.
+// Shared UI component library for Swappa.
 // Components are built on Tailwind CSS + shadcn/ui primitives.
 //
 // Add new components via the shadcn CLI (run from the consuming app):

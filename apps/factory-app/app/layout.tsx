@@ -9,8 +9,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Antigravity Factory',
-  description: 'Antigravity factory floor operations.',
+  title: 'Swappa Factory',
+  description: 'Swappa factory floor operations.',
   manifest: '/manifest.json',
   robots: { index: false, follow: false },
   appleWebApp: {

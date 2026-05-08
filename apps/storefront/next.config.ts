@@ -1,12 +1,12 @@
 import type { NextConfig } from 'next'
 
 const config: NextConfig = {
-  transpilePackages: ['@antigravity/ui', '@antigravity/types', '@antigravity/utils'],
+  transpilePackages: ['@swappa/ui', '@swappa/types', '@swappa/utils'],
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'media.antigravity.com',
+        hostname: 'media.swappa.com',
       },
     ],
   },

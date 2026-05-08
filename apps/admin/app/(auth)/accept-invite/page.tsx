@@ -131,7 +131,7 @@ export default function AcceptInvitePage() {
       {/* Brand */}
       <div className="mb-8 text-center">
         <span className="text-xs font-semibold tracking-[0.3em] text-[#C9A96E] uppercase">
-          ANTIGRAVITY
+          SWAPPA
         </span>
         <p className="mt-1 text-xs text-[#666]">Admin Panel</p>
       </div>

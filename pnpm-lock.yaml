@@ -29,13 +29,13 @@ importers:
 
   apps/admin:
     dependencies:
-      '@antigravity/types':
+      '@swappa/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@antigravity/ui':
+      '@swappa/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@antigravity/utils':
+      '@swappa/utils':
         specifier: workspace:*
         version: link:../../packages/utils
       '@hookform/resolvers':
@@ -84,7 +84,7 @@ importers:
 
   apps/api:
     dependencies:
-      '@antigravity/types':
+      '@swappa/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@aws-sdk/client-s3':
@@ -193,13 +193,13 @@ importers:
 
   apps/factory-app:
     dependencies:
-      '@antigravity/types':
+      '@swappa/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@antigravity/ui':
+      '@swappa/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@antigravity/utils':
+      '@swappa/utils':
         specifier: workspace:*
         version: link:../../packages/utils
       '@ducanh2912/next-pwa':
@@ -239,13 +239,13 @@ importers:
 
   apps/storefront:
     dependencies:
-      '@antigravity/types':
+      '@swappa/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@antigravity/ui':
+      '@swappa/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      '@antigravity/utils':
+      '@swappa/utils':
         specifier: workspace:*
         version: link:../../packages/utils
       '@hookform/resolvers':

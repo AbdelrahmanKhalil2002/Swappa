@@ -42,7 +42,7 @@ export default function LoginPage() {
         {/* Brand */}
         <div className="mb-8 text-center">
           <span className="font-display text-xs font-semibold tracking-[0.25em] text-[#0F0F0F] uppercase">
-            ANTIGRAVITY
+            SWAPPA
           </span>
         </div>
 

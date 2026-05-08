@@ -1,4 +1,4 @@
-# Antigravity — Claude Instructions
+# Swappa — Claude Instructions
 
 ## Before starting any new task
 
@@ -23,7 +23,7 @@ Before implementing, surface ideas such as:
 
 ## Why this matters
 
-Antigravity is an early-stage product. Scope and direction are still being shaped collaboratively. Asking questions upfront avoids wasted rework, and surfacing ideas early helps build better features. The user wants idea-driven collaboration, not narrow task execution.
+Swappa is an early-stage product. Scope and direction are still being shaped collaboratively. Asking questions upfront avoids wasted rework, and surfacing ideas early helps build better features. The user wants idea-driven collaboration, not narrow task execution.
 
 ## How to apply
 

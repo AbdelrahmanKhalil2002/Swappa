@@ -2,7 +2,7 @@ import type { NextConfig } from 'next'
 import withPWA from '@ducanh2912/next-pwa'
 
 const config: NextConfig = {
-  transpilePackages: ['@antigravity/ui', '@antigravity/types', '@antigravity/utils'],
+  transpilePackages: ['@swappa/ui', '@swappa/types', '@swappa/utils'],
 }
 
 export default withPWA({
