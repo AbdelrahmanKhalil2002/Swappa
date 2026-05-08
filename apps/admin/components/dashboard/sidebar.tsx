@@ -8,6 +8,8 @@ import {
   Images,
   Layers,
   LayoutDashboard,
+  Package,
+  Settings,
   ShoppingBag,
   Tag,
 } from 'lucide-react'
@@ -93,6 +95,16 @@ export function Sidebar() {
         <NavLink href="/orders">
           <ClipboardList className="w-4 h-4 shrink-0" />
           Orders
+        </NavLink>
+
+        <NavLink href="/inventory">
+          <Package className="w-4 h-4 shrink-0" />
+          Inventory
+        </NavLink>
+
+        <NavLink href="/settings">
+          <Settings className="w-4 h-4 shrink-0" />
+          Settings
         </NavLink>
 
         {/* Future modules — greyed out */}

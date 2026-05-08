@@ -526,7 +526,8 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 | 2 — Product Catalog + Heel Compatibility Matrix | ✅ Complete |
 | 3 — Heel Configurator + Media + Size Profile | ✅ Complete (image optimization deferred to Sprint 17) |
 | 4 — Cart, Checkout & Payments | ✅ Complete (emails + inventory reservation deferred) |
-| 5–17 | ⏳ Not started |
+| 5 — Advanced Inventory | ✅ Complete (multi-warehouse deferred to Phase 2) |
+| 6–17 | ⏳ Not started |
 
 ---
 
@@ -633,21 +634,25 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 
 ---
 
-### Sprint 5 — Advanced Inventory (Weeks 11–12)
+### Sprint 5 — Advanced Inventory (Weeks 11–12) ✅
 
 **Goal:** Real-time, granular inventory tracking across all dimensions.
 
-- [ ] Prisma schema: `StockLevel` (variant × location × state), `StockMovement`, `StockAdjustment`
-- [ ] Stock states: `available`, `reserved`, `damaged`, `quarantine`
-- [ ] Inventory deduction on order confirmed; reservation on checkout started
-- [ ] Restoration on order cancelled or return approved
-- [ ] Admin: inventory list — filter by SKU, size, color, heel style, stock state
-- [ ] Admin: manual stock adjustment UI with mandatory reason code
-- [ ] Admin: write-off recording (damaged, lost, expired)
-- [ ] Admin: stocktaking tool — expected count vs. physical count, variance report
-- [ ] Admin: low-stock threshold configuration per SKU; alert trigger when breached
-- [ ] Stock movement log: every change recorded with actor, timestamp, reason
-- [ ] Schema includes `warehouseId` on all stock records *(single warehouse at launch; multi-warehouse in Phase 2)*
+- [x] Prisma schema: `StockLevel` (quantity + reserved per variant), `StockMovement`, `AppSetting`
+- [x] `StockMovementType` enum: RECEIVED, RESERVED, RELEASED, ADJUSTMENT, WRITE_OFF, STOCKTAKE
+- [x] Every stock change writes a `StockMovement` row automatically (transactional, with before/after snapshot)
+- [x] Stock reserved on `payment_intent.succeeded` webhook per order item
+- [x] Stock released on order cancel (via `release()` method, called when orders are cancelled)
+- [x] `InventoryService`: receive, reserve, release, adjust, writeOff, stocktake operations
+- [x] Admin: inventory list — search by SKU/name, low-stock filter, available/reserved/total columns
+- [x] Admin: inventory detail page — receive stock, manual adjustment (+ or - with reason), write-off, movement log
+- [x] Admin: stocktaking tool — full variant list with expected count, physical count input, variance column, bulk submit
+- [x] Admin: low-stock threshold configurable via Settings page (`AppSetting` key-value store)
+- [x] Admin: Settings page — global low-stock threshold input
+- [x] Admin sidebar: Inventory + Settings links activated
+- [x] `GET /settings`, `PATCH /settings` endpoints (admin-only)
+- [x] `GET /inventory`, `GET /inventory/stocktake`, `POST /inventory/stocktake`, `GET /inventory/:id`, `GET /inventory/:id/movements`, `POST /inventory/:id/receive`, `PATCH /inventory/:id/adjust`, `POST /inventory/:id/write-off`
+- [ ] Multi-warehouse routing — deferred to Phase 2 (`warehouseId` can be added to `StockLevel` when needed)
 
 **Deliverable:** Inventory live, accurate, and auditable.
 

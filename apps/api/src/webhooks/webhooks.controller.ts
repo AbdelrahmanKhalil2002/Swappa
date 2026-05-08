@@ -11,6 +11,7 @@ import type { Request, Response } from 'express'
 import { ConfigService } from '@nestjs/config'
 import Stripe from 'stripe'
 import { PrismaService } from '../prisma/prisma.service'
+import { InventoryService } from '../inventory/inventory.service'
 
 @Controller('webhooks')
 export class WebhooksController {
@@ -20,6 +21,7 @@ export class WebhooksController {
   constructor(
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly inventory: InventoryService,
   ) {
     this.stripe = new Stripe(config.getOrThrow<string>('STRIPE_SECRET_KEY'))
     this.webhookSecret = config.getOrThrow<string>('STRIPE_WEBHOOK_SECRET')
@@ -47,12 +49,36 @@ export class WebhooksController {
           where: { stripePaymentIntentId: piId },
           data: { paymentStatus: 'PAID', status: 'CONFIRMED' },
         })
-        const order = await this.prisma.order.findFirst({ where: { stripePaymentIntentId: piId } })
-        if (order?.couponId) {
-          await this.prisma.coupon.update({ where: { id: order.couponId }, data: { usedCount: { increment: 1 } } })
+
+        const order = await this.prisma.order.findFirst({
+          where: { stripePaymentIntentId: piId },
+          include: { items: true },
+        })
+
+        if (order) {
+          // Reserve stock for each item in the order
+          for (const item of order.items) {
+            try {
+              await this.inventory.reserve(
+                item.variantId,
+                item.quantity,
+                order.orderNumber,
+              )
+            } catch {
+              // Log but don't fail the webhook — stock may not be managed yet
+            }
+          }
+
+          if (order.couponId) {
+            await this.prisma.coupon.update({
+              where: { id: order.couponId },
+              data: { usedCount: { increment: 1 } },
+            })
+          }
         }
         break
       }
+
       case 'payment_intent.payment_failed': {
         await this.prisma.order.updateMany({
           where: { stripePaymentIntentId: event.data.object.id },

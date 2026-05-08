@@ -58,6 +58,15 @@ enum CouponType {
   FREE_SHIPPING
 }
 
+enum StockMovementType {
+  RECEIVED
+  RESERVED
+  RELEASED
+  ADJUSTMENT
+  WRITE_OFF
+  STOCKTAKE
+}
+
 // ─── Admin RBAC Enums ─────────────────────────────────────────────────────────
 
 enum AdminModule {
@@ -276,17 +285,18 @@ model HeelCompatibility {
 }
 
 model ProductVariant {
-  id         String      @id @default(cuid())
+  id         String         @id @default(cuid())
   baseShoeId String
-  baseShoe   BaseShoe    @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
+  baseShoe   BaseShoe       @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
   size       String
   color      String
   material   String?
-  sku        String      @unique
-  stock      Int         @default(0)
+  sku        String         @unique
+  stock      Int            @default(0)
+  stockLevel StockLevel?
   orderItems OrderItem[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 
   @@map("product_variants")
 }
@@ -355,6 +365,48 @@ model Order {
   updatedAt             DateTime      @updatedAt
 
   @@map("orders")
+}
+
+// ─── Inventory ────────────────────────────────────────────────────────────────
+
+model StockLevel {
+  id        String          @id @default(cuid())
+  variantId String          @unique
+  variant   ProductVariant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantity  Int             @default(0)
+  reserved  Int             @default(0)
+  movements StockMovement[]
+  updatedAt DateTime        @updatedAt
+
+  @@map("stock_levels")
+}
+
+model StockMovement {
+  id            String            @id @default(cuid())
+  stockLevelId  String
+  stockLevel    StockLevel        @relation(fields: [stockLevelId], references: [id])
+  variantId     String
+  type          StockMovementType
+  quantityDelta Int
+  reservedDelta Int
+  quantityAfter Int
+  reservedAfter Int
+  reason        String?
+  reference     String?
+  actorId       String?
+  createdAt     DateTime          @default(now())
+
+  @@map("stock_movements")
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("app_settings")
 }
 
 model OrderItem {
