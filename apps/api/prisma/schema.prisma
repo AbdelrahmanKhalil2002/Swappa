@@ -6,6 +6,32 @@ datasource db {
   provider = "postgresql"
 }
 
+// ─── Catalog Enums ────────────────────────────────────────────────────────────
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum HeelType {
+  STILETTO
+  BLOCK
+  WEDGE
+  KITTEN
+  CONE
+  FLAT
+}
+
+enum HeelMaterial {
+  METAL
+  WOOD
+  ACRYLIC
+  RUBBER
+}
+
+// ─── Admin RBAC Enums ─────────────────────────────────────────────────────────
+
 enum AdminModule {
   DASHBOARD
   CATALOG
@@ -142,4 +168,106 @@ model FactoryRefreshToken {
   createdAt       DateTime      @default(now())
 
   @@map("factory_refresh_tokens")
+}
+
+// ─── Catalog ──────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  baseShoes   BaseShoe[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("categories")
+}
+
+model BaseShoe {
+  id             String              @id @default(cuid())
+  name           String
+  slug           String              @unique
+  description    String?
+  status         ProductStatus       @default(DRAFT)
+  categoryId     String?
+  category       Category?           @relation(fields: [categoryId], references: [id])
+  basePrice      Decimal             @db.Decimal(10, 2)
+  seoTitle       String?
+  seoDescription String?
+  media          ProductMedia[]
+  variants       ProductVariant[]
+  compatibility  HeelCompatibility[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@map("base_shoes")
+}
+
+model HeelStyle {
+  id             String              @id @default(cuid())
+  name           String
+  slug           String              @unique
+  description    String?
+  status         ProductStatus       @default(DRAFT)
+  type           HeelType
+  heightCm       Float
+  material       HeelMaterial?
+  addedPrice     Decimal             @default(0) @db.Decimal(10, 2)
+  seoTitle       String?
+  seoDescription String?
+  media          ProductMedia[]
+  compatibility  HeelCompatibility[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@map("heel_styles")
+}
+
+model HeelCompatibility {
+  id           String    @id @default(cuid())
+  baseShoeId   String
+  heelStyleId  String
+  isCompatible Boolean   @default(true)
+  notes        String?
+  baseShoe     BaseShoe  @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
+  heelStyle    HeelStyle @relation(fields: [heelStyleId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([baseShoeId, heelStyleId])
+  @@map("heel_compatibility")
+}
+
+model ProductVariant {
+  id         String   @id @default(cuid())
+  baseShoeId String
+  baseShoe   BaseShoe @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
+  size       String
+  color      String
+  material   String?
+  sku        String   @unique
+  stock      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("product_variants")
+}
+
+model ProductMedia {
+  id          String     @id @default(cuid())
+  url         String
+  key         String
+  alt         String?
+  position    Int        @default(0)
+  baseShoeId  String?
+  heelStyleId String?
+  baseShoe    BaseShoe?  @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
+  heelStyle   HeelStyle? @relation(fields: [heelStyleId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+
+  @@map("product_media")
 }

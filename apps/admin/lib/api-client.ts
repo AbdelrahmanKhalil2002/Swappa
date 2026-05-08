@@ -1,6 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000'
+const SESSION_KEY = 'ag_admin_token'
 
-class ApiError extends Error {
+export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
@@ -8,6 +9,12 @@ class ApiError extends Error {
     super(message)
     this.name = 'ApiError'
   }
+}
+
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {}
+  const token = sessionStorage.getItem(SESSION_KEY)
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -18,6 +25,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...getAuthHeaders(),
       ...options.headers,
     },
   })
@@ -59,6 +67,14 @@ export function patch<T>(path: string, body?: unknown, options?: RequestInit): P
   return apiRequest<T>(path, {
     ...options,
     method: 'PATCH',
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  })
+}
+
+export function put<T>(path: string, body?: unknown, options?: RequestInit): Promise<T> {
+  return apiRequest<T>(path, {
+    ...options,
+    method: 'PUT',
     body: body !== undefined ? JSON.stringify(body) : undefined,
   })
 }

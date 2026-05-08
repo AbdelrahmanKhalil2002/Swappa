@@ -1,3 +1,7 @@
+import { config } from 'dotenv'
+import { join } from 'node:path'
+config({ path: join(__dirname, '../.env') })
+
 import { PrismaClient, AdminModule, AdminAction } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import * as bcrypt from 'bcryptjs'
