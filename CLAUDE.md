@@ -35,3 +35,5 @@ At the start of every **new task** (not mid-task): ask 2–4 targeted questions 
 
 Full project plan: `docs/plan.md`
 Full instructions (original): `docs/CLAUDE.md`
+
+  <!-- Mohamed Abbas joined the project 2026-05-14 -->
