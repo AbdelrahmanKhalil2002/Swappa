@@ -20,10 +20,12 @@ jobs:
         with:
           fetch-depth: 2
 
+      # `pnpm/action-setup@v4` errors when both `version` here and
+      # `packageManager` in root package.json are set. We rely on
+      # `packageManager: "pnpm@10.x.x"` in package.json as the single
+      # source of truth for the pnpm version.
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
