@@ -35,38 +35,6 @@ enum MediaType {
   FRAME_360
 }
 
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PACKED
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  FAILED
-  REFUNDED
-}
-
-enum CouponType {
-  PERCENTAGE
-  FIXED
-  FREE_SHIPPING
-}
-
-enum StockMovementType {
-  RECEIVED
-  RESERVED
-  RELEASED
-  ADJUSTMENT
-  WRITE_OFF
-  STOCKTAKE
-}
-
 // ─── Admin RBAC Enums ─────────────────────────────────────────────────────────
 
 enum AdminModule {
@@ -99,6 +67,168 @@ enum AdminAction {
   WRITE
   DELETE
 }
+
+// ─── Order Enums ──────────────────────────────────────────────────────────────
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+  FREE_SHIPPING
+}
+
+// ─── Raw Materials Enums ──────────────────────────────────────────────────────
+
+enum MaterialCategory {
+  LEATHER
+  FABRIC
+  SOLE
+  METAL
+  ADHESIVE
+  THREAD
+  FOAM
+  OTHER
+}
+
+enum MaterialUnit {
+  KG
+  G
+  M
+  CM
+  UNIT
+  PAIR
+  ROLL
+  SHEET
+}
+
+enum RawStockMovementType {
+  RECEIVE
+  CONSUME
+  ADJUST
+  WRITE_OFF
+  RETURN
+}
+
+// ─── Inventory Enums ──────────────────────────────────────────────────────────
+
+enum StockMovementType {
+  RECEIVE
+  RESERVE
+  RELEASE
+  ADJUST
+  WRITE_OFF
+  RETURN
+}
+
+// ─── Manufacturing Enums ──────────────────────────────────────────────────────
+
+enum ProductionOrderStatus {
+  PENDING
+  IN_PROGRESS
+  QC_PENDING
+  QC_REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum QCStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// ─── Procurement Enums ────────────────────────────────────────────────────────
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SENT
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum GoodsReceiptStatus {
+  PENDING
+  RECONCILED
+  CONFIRMED
+}
+
+// ─── Returns Enums ────────────────────────────────────────────────────────────
+
+enum ReturnType {
+  DEFECTIVE
+  WRONG_SIZE
+  WRONG_ITEM
+  HEEL_STYLE_EXCHANGE
+  SIZE_EXCHANGE
+  OTHER
+}
+
+enum ReturnReason {
+  DEFECTIVE
+  WRONG_SIZE
+  WRONG_ITEM
+  NOT_AS_DESCRIBED
+  CHANGED_MIND
+  OTHER
+}
+
+enum ReturnStatus {
+  REQUESTED
+  RECEIVED
+  INSPECTED
+  RESOLVED
+}
+
+enum ReturnItemCondition {
+  RESALABLE
+  DAMAGED
+  MISSING_PARTS
+  DESTROYED
+}
+
+enum RefundMethod {
+  STRIPE
+  STORE_CREDIT
+}
+
+// ─── Shipping Enums ───────────────────────────────────────────────────────────
+
+enum Carrier {
+  DHL
+  ARAMEX
+  BOSTA
+  SMSA
+  MANUAL
+}
+
+enum ShipmentStatus {
+  LABEL_CREATED
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+// ─── Admin RBAC ───────────────────────────────────────────────────────────────
 
 model Role {
   id          String           @id @default(cuid())
@@ -137,9 +267,12 @@ model AdminUser {
   resetExpiresAt  DateTime?
   roleId          String
   role            Role                @relation(fields: [roleId], references: [id])
-  refreshTokens   AdminRefreshToken[]
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  refreshTokens        AdminRefreshToken[]
+  createdReturns       Return[]              @relation("ReturnCreator")
+  returnInspections    ReturnInspection[]    @relation("ReturnInspector")
+  processedRefunds     Refund[]              @relation("RefundProcessor")
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
   @@map("admin_users")
 }
@@ -155,6 +288,8 @@ model AdminRefreshToken {
   @@map("admin_refresh_tokens")
 }
 
+// ─── Customers ────────────────────────────────────────────────────────────────
+
 model Customer {
   id              String                 @id @default(cuid())
   email           String                 @unique
@@ -166,8 +301,8 @@ model Customer {
   verifyExpiresAt DateTime?
   resetToken      String?
   resetExpiresAt  DateTime?
-  footLengthMm    Int?
-  footWidthMm     Int?
+  footLengthMm    Float?
+  footWidthMm     Float?
   refreshTokens   CustomerRefreshToken[]
   orders          Order[]
   createdAt       DateTime               @default(now())
@@ -187,12 +322,15 @@ model CustomerRefreshToken {
   @@map("customer_refresh_tokens")
 }
 
+// ─── Factory Workers ──────────────────────────────────────────────────────────
+
 model FactoryWorker {
   id            String                @id @default(cuid())
   name          String
   pin           String
   isActive      Boolean               @default(true)
   refreshTokens FactoryRefreshToken[]
+  stageLogs     ProductionStageLog[]
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
 
@@ -208,6 +346,44 @@ model FactoryRefreshToken {
   createdAt       DateTime      @default(now())
 
   @@map("factory_refresh_tokens")
+}
+
+// ─── Suppliers ────────────────────────────────────────────────────────────────
+
+model Supplier {
+  id              String                  @id @default(cuid())
+  name            String
+  code            String                  @unique
+  contactName     String?
+  contactEmail    String                  @unique
+  contactPhone    String?
+  website         String?
+  paymentTerms    String?
+  notes           String?
+  isActive        Boolean                 @default(true)
+  password        String?
+  inviteToken     String?
+  inviteExpiresAt DateTime?
+  resetToken      String?
+  resetExpiresAt  DateTime?
+  purchaseOrders  PurchaseOrder[]
+  documents       SupplierDocument[]
+  refreshTokens   SupplierRefreshToken[]
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@map("suppliers")
+}
+
+model SupplierRefreshToken {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@map("supplier_refresh_tokens")
 }
 
 // ─── Catalog ──────────────────────────────────────────────────────────────────
@@ -257,7 +433,6 @@ model HeelStyle {
   heightCm       Float
   material       HeelMaterial?
   addedPrice     Decimal             @default(0) @db.Decimal(10, 2)
-  layerImageUrl  String?
   seoTitle       String?
   seoDescription String?
   media          ProductMedia[]
@@ -285,18 +460,20 @@ model HeelCompatibility {
 }
 
 model ProductVariant {
-  id         String         @id @default(cuid())
-  baseShoeId String
-  baseShoe   BaseShoe       @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
-  size       String
-  color      String
-  material   String?
-  sku        String         @unique
-  stock      Int            @default(0)
-  stockLevel StockLevel?
-  orderItems OrderItem[]
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id               String              @id @default(cuid())
+  baseShoeId       String
+  baseShoe         BaseShoe            @relation(fields: [baseShoeId], references: [id], onDelete: Cascade)
+  size             String
+  color            String
+  material         String?
+  sku              String              @unique
+  stock            Int                 @default(0)
+  orderItems       OrderItem[]
+  stockLevel       StockLevel?
+  productionOrders ProductionOrder[]
+  bom              BOM?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@map("product_variants")
 }
@@ -317,18 +494,18 @@ model ProductMedia {
   @@map("product_media")
 }
 
-// ─── Orders & Checkout ────────────────────────────────────────────────────────
+// ─── Orders ───────────────────────────────────────────────────────────────────
 
 model Coupon {
   id             String     @id @default(cuid())
   code           String     @unique
   type           CouponType
   value          Decimal    @db.Decimal(10, 2)
-  minOrderAmount Decimal?   @db.Decimal(10, 2)
+  isActive       Boolean    @default(true)
+  expiresAt      DateTime?
   maxUses        Int?
   usedCount      Int        @default(0)
-  expiresAt      DateTime?
-  isActive       Boolean    @default(true)
+  minOrderAmount Decimal?   @db.Decimal(10, 2)
   orders         Order[]
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
@@ -337,34 +514,58 @@ model Coupon {
 }
 
 model Order {
-  id                    String        @id @default(cuid())
-  orderNumber           String        @unique
-  customerId            String?
-  customer              Customer?     @relation(fields: [customerId], references: [id])
-  email                 String
-  firstName             String
-  lastName              String
-  phone                 String
-  addressLine1          String
-  addressLine2          String?
-  city                  String
-  governorate           String
-  status                OrderStatus   @default(PENDING)
-  paymentStatus         PaymentStatus @default(PENDING)
-  stripePaymentIntentId String?       @unique
-  subtotal              Decimal       @db.Decimal(10, 2)
-  shippingCost          Decimal       @default(0) @db.Decimal(10, 2)
-  discountAmount        Decimal       @default(0) @db.Decimal(10, 2)
-  total                 Decimal       @db.Decimal(10, 2)
-  couponId              String?
-  coupon                Coupon?       @relation(fields: [couponId], references: [id])
-  shippingMethod        String        @default("standard")
-  notes                 String?
-  items                 OrderItem[]
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  id                     String        @id @default(cuid())
+  orderNumber            String        @unique
+  customerId             String?
+  customer               Customer?     @relation(fields: [customerId], references: [id])
+  email                  String
+  firstName              String
+  lastName               String
+  phone                  String?
+  addressLine1           String?
+  addressLine2           String?
+  city                   String?
+  governorate            String?
+  notes                  String?
+  shippingMethod         String?
+  subtotal               Decimal       @db.Decimal(10, 2)
+  shippingCost           Decimal       @default(0) @db.Decimal(10, 2)
+  discountAmount         Decimal       @default(0) @db.Decimal(10, 2)
+  total                  Decimal       @db.Decimal(10, 2)
+  couponId               String?
+  coupon                 Coupon?       @relation(fields: [couponId], references: [id])
+  stripePaymentIntentId  String?
+  status                 OrderStatus   @default(PENDING)
+  paymentStatus          PaymentStatus @default(PENDING)
+  isReplacement          Boolean       @default(false)
+  replacementForOrderId  String?
+  items                  OrderItem[]
+  shipments              Shipment[]
+  returns                Return[]
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
 
   @@map("orders")
+}
+
+model OrderItem {
+  id           String     @id @default(cuid())
+  orderId      String
+  order        Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId    String
+  variant      ProductVariant @relation(fields: [variantId], references: [id])
+  heelStyleId  String?
+  heelStyle    HeelStyle? @relation(fields: [heelStyleId], references: [id])
+  quantity     Int
+  unitPrice    Decimal    @db.Decimal(10, 2)
+  heelPrice    Decimal    @default(0) @db.Decimal(10, 2)
+  lineTotal    Decimal    @db.Decimal(10, 2)
+  snapshotName String
+  snapshotSku  String
+  returnItems  ReturnItem[]
+  createdAt    DateTime   @default(now())
+
+  @@map("order_items")
 }
 
 // ─── Inventory ────────────────────────────────────────────────────────────────
@@ -376,54 +577,351 @@ model StockLevel {
   quantity  Int             @default(0)
   reserved  Int             @default(0)
   movements StockMovement[]
+  createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
   @@map("stock_levels")
 }
 
 model StockMovement {
-  id            String            @id @default(cuid())
-  stockLevelId  String
-  stockLevel    StockLevel        @relation(fields: [stockLevelId], references: [id])
-  variantId     String
-  type          StockMovementType
-  quantityDelta Int
-  reservedDelta Int
-  quantityAfter Int
-  reservedAfter Int
+  id             String            @id @default(cuid())
+  stockLevelId   String
+  stockLevel     StockLevel        @relation(fields: [stockLevelId], references: [id], onDelete: Cascade)
+  variantId      String
+  type           StockMovementType
+  quantityDelta  Int
+  reservedDelta  Int               @default(0)
+  quantityAfter  Int
+  reservedAfter  Int               @default(0)
+  reason         String?
+  reference      String?
+  actorId        String?
+  createdAt      DateTime          @default(now())
+
+  @@map("stock_movements")
+}
+
+// ─── Raw Materials ────────────────────────────────────────────────────────────
+
+model RawMaterial {
+  id             String                @id @default(cuid())
+  name           String
+  sku            String                @unique
+  description    String?
+  category       MaterialCategory      @default(OTHER)
+  unit           MaterialUnit          @default(UNIT)
+  costPerUnit    Decimal               @db.Decimal(10, 4)
+  supplier       String?
+  minStockLevel  Decimal               @default(0) @db.Decimal(10, 4)
+  stock          RawMaterialStock?
+  purchaseLines  PurchaseOrderLine[]
+  bomLines       BOMLine[]
+  goodsReceiptLines GoodsReceiptLine[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@map("raw_materials")
+}
+
+model RawMaterialStock {
+  id               String                 @id @default(cuid())
+  materialId       String                 @unique
+  material         RawMaterial            @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  quantity         Decimal                @default(0) @db.Decimal(10, 4)
+  reservedQuantity Decimal                @default(0) @db.Decimal(10, 4)
+  movements        RawMaterialMovement[]
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@map("raw_material_stocks")
+}
+
+model RawMaterialMovement {
+  id            String               @id @default(cuid())
+  stockId       String?
+  stock         RawMaterialStock?    @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  materialId    String
+  type          RawStockMovementType
+  quantityDelta Decimal              @db.Decimal(10, 4)
+  quantityAfter Decimal              @db.Decimal(10, 4)
+  costPerUnit   Decimal?             @db.Decimal(10, 4)
   reason        String?
   reference     String?
   actorId       String?
-  createdAt     DateTime          @default(now())
+  createdAt     DateTime             @default(now())
 
-  @@map("stock_movements")
+  @@map("raw_material_movements")
+}
+
+// ─── Bill of Materials ────────────────────────────────────────────────────────
+
+model BOM {
+  id        String         @id @default(cuid())
+  variantId String         @unique
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  lines     BOMLine[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("boms")
+}
+
+model BOMLine {
+  id              String      @id @default(cuid())
+  bomId           String
+  bom             BOM         @relation(fields: [bomId], references: [id], onDelete: Cascade)
+  materialId      String
+  material        RawMaterial @relation(fields: [materialId], references: [id])
+  quantityPerUnit Decimal     @db.Decimal(10, 4)
+  notes           String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([bomId, materialId])
+  @@map("bom_lines")
+}
+
+// ─── Manufacturing ────────────────────────────────────────────────────────────
+
+model ProductionOrder {
+  id                   String                 @id @default(cuid())
+  orderNumber          String                 @unique
+  variantId            String
+  variant              ProductVariant         @relation(fields: [variantId], references: [id])
+  quantity             Int
+  overheadCostPerUnit  Decimal                @default(0) @db.Decimal(10, 2)
+  materialCostPerUnit  Decimal                @db.Decimal(10, 2)
+  currentStage         String?
+  notes                String?
+  createdById          String?
+  status               ProductionOrderStatus  @default(PENDING)
+  stageLogs            ProductionStageLog[]
+  qcInspections        QCInspection[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+
+  @@map("production_orders")
+}
+
+model ProductionStageLog {
+  id                String          @id @default(cuid())
+  productionOrderId String
+  productionOrder   ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+  stage             String
+  unitsCompleted    Int
+  notes             String?
+  workerId          String?
+  worker            FactoryWorker?  @relation(fields: [workerId], references: [id])
+  createdAt         DateTime        @default(now())
+
+  @@map("production_stage_logs")
+}
+
+model QCInspection {
+  id                String          @id @default(cuid())
+  productionOrderId String
+  productionOrder   ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+  status            QCStatus        @default(PENDING)
+  checklistResults  Json?
+  defectNotes       String?
+  defectPhotoUrls   String[]
+  submittedById     String?
+  reviewedById      String?
+  rejectionReason   String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@map("qc_inspections")
+}
+
+// ─── Procurement ──────────────────────────────────────────────────────────────
+
+model PurchaseOrder {
+  id                   String              @id @default(cuid())
+  orderNumber          String              @unique
+  supplierId           String
+  supplier             Supplier            @relation(fields: [supplierId], references: [id])
+  expectedDeliveryDate DateTime?
+  notes                String?
+  createdById          String?
+  status               PurchaseOrderStatus @default(DRAFT)
+  lines                PurchaseOrderLine[]
+  goodsReceipts        GoodsReceipt[]
+  documents            SupplierDocument[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderLine {
+  id               String             @id @default(cuid())
+  purchaseOrderId  String
+  purchaseOrder    PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  materialId       String
+  material         RawMaterial        @relation(fields: [materialId], references: [id])
+  quantityOrdered  Decimal            @db.Decimal(10, 4)
+  unitCost         Decimal            @db.Decimal(10, 4)
+  goodsReceiptLines GoodsReceiptLine[]
+  createdAt        DateTime           @default(now())
+
+  @@map("purchase_order_lines")
+}
+
+model GoodsReceipt {
+  id              String             @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+  status          GoodsReceiptStatus @default(PENDING)
+  notes           String?
+  confirmedById   String?
+  confirmedAt     DateTime?
+  lines           GoodsReceiptLine[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@map("goods_receipts")
+}
+
+model GoodsReceiptLine {
+  id                  String            @id @default(cuid())
+  goodsReceiptId      String
+  goodsReceipt        GoodsReceipt      @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
+  purchaseOrderLineId String
+  purchaseOrderLine   PurchaseOrderLine @relation(fields: [purchaseOrderLineId], references: [id])
+  materialId          String
+  material            RawMaterial       @relation(fields: [materialId], references: [id])
+  quantityExpected    Decimal           @db.Decimal(10, 4)
+  quantityReceived    Decimal           @default(0) @db.Decimal(10, 4)
+  unitCost            Decimal           @db.Decimal(10, 4)
+  hasShortage         Boolean           @default(false)
+  shortageNotes       String?
+  createdAt           DateTime          @default(now())
+
+  @@map("goods_receipt_lines")
+}
+
+model SupplierDocument {
+  id         String        @id @default(cuid())
+  supplierId String
+  supplier   Supplier      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  poId       String?
+  po         PurchaseOrder? @relation(fields: [poId], references: [id])
+  name       String
+  url        String
+  key        String
+  docType    String        @default("GENERAL")
+  createdAt  DateTime      @default(now())
+
+  @@map("supplier_documents")
+}
+
+// ─── Returns ──────────────────────────────────────────────────────────────────
+
+model Return {
+  id                 String             @id @default(cuid())
+  returnNumber       String             @unique
+  orderId            String
+  order              Order              @relation(fields: [orderId], references: [id])
+  type               ReturnType
+  reason             ReturnReason
+  reasonNotes        String?
+  isInWarranty       Boolean            @default(false)
+  status             ReturnStatus       @default(REQUESTED)
+  createdById        String
+  createdBy          AdminUser          @relation("ReturnCreator", fields: [createdById], references: [id])
+  replacementOrderId String?
+  items              ReturnItem[]
+  inspection         ReturnInspection?
+  refund             Refund?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@map("returns")
+}
+
+model ReturnItem {
+  id          String              @id @default(cuid())
+  returnId    String
+  return      Return              @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  orderItemId String
+  orderItem   OrderItem           @relation(fields: [orderItemId], references: [id])
+  quantity    Int
+  condition   ReturnItemCondition?
+  notes       String?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@map("return_items")
+}
+
+model ReturnInspection {
+  id            String    @id @default(cuid())
+  returnId      String    @unique
+  return        Return    @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  inspectedById String
+  inspectedBy   AdminUser @relation("ReturnInspector", fields: [inspectedById], references: [id])
+  notes         String?
+  createdAt     DateTime  @default(now())
+
+  @@map("return_inspections")
+}
+
+model Refund {
+  id              String       @id @default(cuid())
+  returnId        String       @unique
+  return          Return       @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  method          RefundMethod
+  amount          Decimal      @db.Decimal(10, 2)
+  stripeRefundId  String?
+  storeCreditCode String?
+  processedById   String
+  processedBy     AdminUser    @relation("RefundProcessor", fields: [processedById], references: [id])
+  createdAt       DateTime     @default(now())
+
+  @@map("refunds")
+}
+
+// ─── Shipping ─────────────────────────────────────────────────────────────────
+
+model Shipment {
+  id               String         @id @default(cuid())
+  orderId          String
+  order            Order          @relation(fields: [orderId], references: [id])
+  carrier          Carrier
+  trackingNumber   String?
+  shippingCost     Decimal?       @db.Decimal(10, 2)
+  estimatedDelivery DateTime?
+  status           ShipmentStatus @default(LABEL_CREATED)
+  createdById      String?
+  events           ShipmentEvent[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@map("shipments")
+}
+
+model ShipmentEvent {
+  id         String         @id @default(cuid())
+  shipmentId String
+  shipment   Shipment       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  status     ShipmentStatus
+  description String
+  location   String?
+  occurredAt DateTime
+  createdAt  DateTime       @default(now())
+
+  @@map("shipment_events")
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
 model AppSetting {
-  key       String   @id
+  id        String   @id @default(cuid())
+  key       String   @unique
   value     String
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("app_settings")
-}
-
-model OrderItem {
-  id            String         @id @default(cuid())
-  orderId       String
-  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  variantId     String
-  variant       ProductVariant @relation(fields: [variantId], references: [id])
-  heelStyleId   String?
-  heelStyle     HeelStyle?     @relation(fields: [heelStyleId], references: [id])
-  quantity      Int
-  unitPrice     Decimal        @db.Decimal(10, 2)
-  heelPrice     Decimal        @default(0) @db.Decimal(10, 2)
-  lineTotal     Decimal        @db.Decimal(10, 2)
-  snapshotName  String
-  snapshotSku   String
-  createdAt     DateTime       @default(now())
-
-  @@map("order_items")
 }

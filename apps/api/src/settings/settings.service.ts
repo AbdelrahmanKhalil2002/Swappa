@@ -1,8 +1,20 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 
+const DEFAULT_STAGES = JSON.stringify([
+  'Material Prep',
+  'Cutting',
+  'Assembly',
+  'Mechanism Install',
+  'QC',
+  'Finishing',
+  'Packaging',
+  'Ready',
+])
+
 const DEFAULTS: Record<string, string> = {
   low_stock_threshold: '5',
+  production_stages: DEFAULT_STAGES,
 }
 
 @Injectable()
@@ -37,5 +49,14 @@ export class SettingsService {
   async getLowStockThreshold(): Promise<number> {
     const val = await this.get('low_stock_threshold')
     return parseInt(val, 10) || 5
+  }
+
+  async getProductionStages(): Promise<string[]> {
+    const val = await this.get('production_stages')
+    try {
+      return JSON.parse(val)
+    } catch {
+      return JSON.parse(DEFAULT_STAGES)
+    }
   }
 }

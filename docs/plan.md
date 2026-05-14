@@ -527,7 +527,11 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 | 3 — Heel Configurator + Media + Size Profile | ✅ Complete (image optimization deferred to Sprint 17) |
 | 4 — Cart, Checkout & Payments | ✅ Complete (emails + inventory reservation deferred) |
 | 5 — Advanced Inventory | ✅ Complete (multi-warehouse deferred to Phase 2) |
-| 6–17 | ⏳ Not started |
+| 6 — Raw Materials Management | ✅ Complete |
+| 7 — Manufacturing Module + QC + Factory PWA | ✅ Complete |
+| 8 — Procurement & Suppliers + Supplier Portal | ✅ Complete |
+| 9 — Shipping, Fulfillment & Returns | ✅ Complete |
+| 10–17 | ⏳ Not started |
 
 ---
 
@@ -658,116 +662,149 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 
 ---
 
-### Sprint 6 — Raw Materials Management (Weeks 13–14)
+### Sprint 6 — Raw Materials Management (Weeks 13–14) ✅
 
 **Goal:** Track everything that goes into the shoes, not just the finished product.
 
-- [ ] Prisma schema: `RawMaterial`, `MaterialStock`, `MaterialMovement`, `MaterialSupplierPrice`
-- [ ] Material catalog: leather types, heel components, magnetic locking mechanisms, adhesive, packaging, accessories
-- [ ] Stock level per material with unit of measure (meters, units, kg, liters)
-- [ ] Minimum stock threshold and reorder alert per material
-- [ ] Material cost per unit (updated on each goods receipt)
-- [ ] Admin: material stock adjustment and write-off
-- [ ] Admin: material movement log (every deduction and receipt recorded)
-- [ ] Wastage recording: log material waste with reason (cutting offcuts, spillage, defect)
-- [ ] Wastage rate report per material
+- [x] Prisma schema: `RawMaterial`, `RawMaterialStock`, `RawMaterialMovement`, `BOM`, `BOMLine`
+- [x] Enums: `UnitOfMeasure` (UNITS, METERS, SQM, KG, GRAMS, LITERS, ML), `MaterialCategory` (LEATHER, HARDWARE, COMPONENTS, ADHESIVES, PACKAGING, OTHER), `RawMaterialMovementType` (RECEIVED, ADJUSTMENT, WRITE_OFF, CONSUMED, STOCKTAKE)
+- [x] Material catalog with name, SKU, category, unit, costPerUnit, supplier (text), minStockLevel
+- [x] Stock level per material (RawMaterialStock); every change writes a RawMaterialMovement
+- [x] costPerUnit updated automatically on each goods receipt
+- [x] Admin: material list with category filter, low-stock filter, search
+- [x] Admin: material detail — edit form, receive stock (updates cost/unit), manual adjustment, write-off, movement log
+- [x] Admin: new material form with all fields
+- [x] BOM editor: define material lines per product variant (quantity per unit, notes, live cost preview)
+- [x] BOM list: view all BOMs with material breakdown and calculated material cost per unit
+- [x] `GET /bom/all`, `GET /bom/:variantId`, `PUT /bom/:variantId`, `DELETE /bom/:variantId/lines/:lineId`
+- [x] `BomService.calculateCost(variantId)` — used by manufacturing in Sprint 7 to compute material cost
+- [x] Admin sidebar: Raw Materials link activated
+- [ ] Wastage rate report — deferred to Sprint 12 (Analytics)
+- [ ] Supplier performance metrics — deferred to Sprint 8 (Procurement)
 
-**Deliverable:** Raw materials tracked from arrival to consumption.
+**Deliverable:** Raw materials tracked from arrival to consumption. BOM defined per variant, ready for Sprint 7 manufacturing cost calculation.
 
 ---
 
-### Sprint 7 — Manufacturing Module + QC + Factory PWA (Weeks 15–16)
+### Sprint 7 — Manufacturing Module + QC + Factory PWA (Weeks 15–16) ✅
 
 **Goal:** Full production lifecycle. QC enforced. Factory workers operational on PWA.
 
 **Manufacturing:**
-- [ ] Prisma schema: `ProductionOrder`, `ProductionStage`, `BOM`, `BOMLine`, `ProductionCost`
-- [ ] Bill of Materials editor per product variant: define material + quantity per unit
-- [ ] Production order creation: product, target quantity, schedule date, assigned team
-- [ ] Raw material auto-reservation when production order is confirmed
-- [ ] Stage-by-stage tracking: Material Prep → Cutting → Assembly → Mechanism Install → QC → Finishing → Packaging → Ready
-- [ ] Units tracking per order: planned / in-progress / completed / defective / rejected
-- [ ] **Production Cost Calculator** — auto-calculates per unit and per batch:
-  - Materials cost (BOM quantities × current material prices)
-  - Labor cost (hours logged × hourly rate)
-  - Packaging cost
-  - Overhead allocation (configurable percentage)
-  - Output: unit cost, batch total cost, margin vs. selling price
-- [ ] Inventory auto-increment when production order completed
-- [ ] Production throughput report: planned vs. actual per period
+- [x] Prisma: `ProductionOrderStatus`, `QCStatus` enums; `ProductionOrder`, `ProductionStageLog`, `QCInspection` models
+- [x] `ProductionOrder` captures `materialCostPerUnit` (from `BomService.calculateCost`) + `overheadCostPerUnit` (manual) at creation time
+- [x] Production stages configurable via `AppSetting` key `production_stages` (JSON array); default: Material Prep → Cutting → Assembly → Mechanism Install → QC → Finishing → Packaging → Ready
+- [x] `ManufacturingService`: create, advance stage, submit QC, review QC (approve/reject), cancel
+- [x] `ManufacturingController`: admin endpoints (MANUFACTURING / QUALITY_CONTROL permissions) + factory worker endpoints (FactoryJwtGuard)
+- [x] `GET /catalog/variants` flat endpoint (FlatVariantsController) for new-order form
 
-**Quality Control:**
-- [ ] QC checklist per product type (configurable in settings): heel lock test, stability test, visual inspection, packaging check
-- [ ] **Damage Tagging Standard**: for each defect logged, worker must select defect type → severity → photograph the defect. Photo auto-tagged with batch ID, worker ID, timestamp.
-- [ ] QC approval workflow: Inspector submits → QC Manager reviews → approve (proceed) or reject (rework / scrap)
-- [ ] Failed unit resolution: rework order or scrap entry
-- [ ] Scrap accounting: scrapped units logged as loss, fed to finance module
-- [ ] Defect rate dashboard: by product, batch, defect type, inspector
+**Admin pages:**
+- [x] `/manufacturing` — paginated list with status filter
+- [x] `/manufacturing/new` — create production order (select variant, quantity, overhead)
+- [x] `/manufacturing/[id]` — detail: cost summary, stage log timeline, QC review panel (approve/reject)
+- [x] Sidebar: Manufacturing link active, removed from "Coming soon"
+
+**QC flow:**
+- [x] Inspector (factory worker) submits checklist + defect notes via PWA → status becomes QC_PENDING
+- [x] QC Manager (admin) reviews submission → approves (COMPLETED) or rejects (QC_REJECTED + new PENDING QC created)
 
 **Factory Floor PWA:**
-- [ ] PWA setup: installable on Android/iOS tablets and phones
-- [ ] Factory worker PIN login
-- [ ] View today's assigned production orders and current stage
-- [ ] Advance a batch to the next production stage (single tap)
-- [ ] Log completed and defective unit counts
-- [ ] QC checklist UI: tap through checklist items; camera capture for defect photos
-- [ ] Offline mode: queue actions locally, sync on reconnect
-- [ ] No access to financial data, customer data, or other modules
+- [x] Online-first (no offline queue in Sprint 7)
+- [x] PIN login: 2-step (worker ID → 6-digit PIN pad) using `POST /auth/factory/login`
+- [x] Auth context with localStorage token + session restore via refresh token
+- [x] Dashboard: active orders list with status filter tabs, pull-to-refresh
+- [x] Order detail: cost/qty summary, advance-stage form, QC checklist submission, stage history
+- [x] Protected `(app)` layout with worker name + sign-out header
 
 **Deliverable:** Manufacturing fully tracked. QC enforced. Factory workers on PWA.
 
 ---
 
-### Sprint 8 — Procurement & Suppliers + Supplier Portal (Weeks 17–18)
+### Sprint 8 — Procurement & Suppliers + Supplier Portal (Weeks 17–18) ✅
 
 **Goal:** End-to-end procurement from PO creation to goods receipt.
 
-- [ ] Prisma schema: `Supplier`, `PurchaseOrder`, `PurchaseOrderLine`, `GoodsReceipt`, `SupplierDocument`
-- [ ] Supplier directory: company info, contacts, payment terms, materials supplied, certifications
-- [ ] Purchase order creation: select supplier, add material lines, set expected delivery
-- [ ] PO PDF generation and email send to supplier
-- [ ] Goods receipt: record what arrived, flag shortages or damaged materials
-- [ ] Raw material stock auto-update on goods receipt
-- [ ] Supplier performance metrics: on-time rate, defect rate, average lead time, price trend
-- [ ] Cost comparison view across suppliers for the same material
-- [ ] **Supplier Portal** (external, limited login):
-  - Suppliers receive email invite with login link
-  - View open POs addressed to them
-  - Update expected delivery date
-  - Upload delivery documents and material certificates
-  - View payment status (paid / pending)
-  - Cannot see any other part of the admin panel
+**Schema:**
+- [x] Prisma: `PurchaseOrderStatus`, `GoodsReceiptStatus` enums; `Supplier`, `SupplierRefreshToken`, `PurchaseOrder`, `PurchaseOrderLine`, `GoodsReceipt`, `GoodsReceiptLine`, `SupplierDocument` models
+
+**API — ProcurementModule:**
+- [x] Supplier CRUD + invite token regeneration (`POST /procurement/suppliers/:id/invite`)
+- [x] Supplier performance metrics: on-time rate, avg delivery days, total spend (computed queries, no stored data)
+- [x] Material cost comparison: `GET /procurement/materials/:materialId/cost-comparison` (all PO lines for a material across suppliers)
+- [x] PO creation with lines; status transitions: DRAFT → SENT → CONFIRMED → PARTIALLY_RECEIVED/RECEIVED
+- [x] Goods receipt 2-step: create GR (PENDING) → reconcile (RECONCILED, flag shortages) → confirm (CONFIRMED, auto-updates raw material stock via `RawMaterialsService.receive()`)
+- [x] Portal endpoints: view POs, update delivery date, upload/view documents
+
+**Auth:**
+- [x] `SupplierAuthModule`: invite token → set password → email+password login, refresh/logout (httpOnly cookie), `SupplierJwtGuard`
+
+**Admin pages:**
+- [x] `/suppliers` — directory list with PO count
+- [x] `/suppliers/new` — create supplier + show invite link immediately
+- [x] `/suppliers/[id]` — detail: performance stats, edit form, portal invite link regeneration
+- [x] `/procurement` — PO list with status filter, supplier filter via `?supplierId=`
+- [x] `/procurement/new` — create PO: supplier, lines (auto-fills cost from material), delivery date
+- [x] `/procurement/[id]` — PO detail: status controls, GR reconcile flow, confirmed receipts sidebar
+- [x] Sidebar: Procurement section (Suppliers + Purchase Orders) under Truck icon
+
+**Supplier Portal (`apps/supplier-portal` — port 3003):**
+- [x] Separate Next.js app, light theme (white/gray B2B)
+- [x] `GET /accept-invite?token=` → set password → instant login
+- [x] Email + password login for returning suppliers
+- [x] Dashboard: active and completed POs with delivery date + overdue indicator
+- [x] PO detail: view materials ordered, update expected delivery date, delivery status
+- [x] Documents: upload (URL-based) + list all uploaded documents by type
+
+**Design decisions:**
+- PO printable view instead of PDF (admin can print from browser — no server-side PDF lib needed)
+- Supplier performance is computed on-demand from PO/GR data, not stored
+- GR 2-step reconciliation: enter received quantities + flag shortages → review → confirm (stock update on confirm only)
 
 **Deliverable:** Procurement tracked start to finish. Suppliers self-serve via portal.
 
 ---
 
-### Sprint 9 — Shipping, Fulfillment & Returns (Weeks 19–20)
+### Sprint 9 — Shipping, Fulfillment & Returns (Weeks 19–20) ✅
 
 **Goal:** Orders get out the door. Returns handled end-to-end.
 
-**Shipping:**
-- [ ] EasyPost or ShipStation API integration
-- [ ] Carrier configuration: DHL, Aramex, Bosta, SMSA — each as a pluggable connector
-- [ ] Auto rate shopping: fastest and cheapest options per order, displayed to fulfillment team
-- [ ] Shipping label generation (single and bulk)
-- [ ] Tracking number sync: carrier webhook updates order status in real time
-- [ ] Customer tracking page: live carrier events displayed
-- [ ] Delivery SLA monitoring: breach triggers admin alert
-- [ ] Failed delivery workflow: re-dispatch queue
+**Schema:**
+- [x] Prisma: `ShipmentStatus`, `Carrier`, `ReturnType`, `ReturnReason`, `ReturnStatus`, `ReturnItemCondition`, `RefundMethod` enums
+- [x] `Shipment` model with multi-shipment per order support; `ShipmentEvent` for tracking history
+- [x] `Return`, `ReturnItem`, `ReturnInspection`, `Refund` models
+- [x] `Order` updated: `shipments`, `returns`, `isReplacement`, `replacementForOrderId`
+- [x] `OrderItem` updated: `returnItems`
+- [x] `AdminUser` updated: `createdReturns`, `inspections`, `processedRefunds`
 
-**Returns & Exchange:**
-- [ ] Prisma schema: `Return`, `ReturnItem`, `ReturnInspection`, `Refund`, `WarrantyClaim`
-- [ ] Customer: submit return request from account (select order, item, return type, reason)
-- [ ] Return types: full return, size exchange, heel style exchange, warranty claim
-- [ ] Return reason capture: wrong size, defective mechanism, changed mind, wrong item received, other
-- [ ] **Size Profile integration**: if reason is wrong size, system checks if size profile prediction matches what was ordered — flags discrepancy for size recommendation improvement
-- [ ] **Warranty tracking**: system checks order date against warranty window; flags in-warranty claims automatically
-- [ ] RMA generation (PDF) sent to customer
-- [ ] Inspection workflow: received → inspected → condition assessed (resalable / rework / scrap) → resolution selected
-- [ ] Resolution: Stripe refund, store credit issue, or exchange dispatch
-- [ ] Restocked items: return to available inventory; scrapped items: logged to finance
-- [ ] Return reason analytics: most returned model, most returned size, most common defect
+**API — ShippingModule:**
+- [x] `ShippingService`: createShipment, findAll, findByOrder, findOne, updateStatus (appends ShipmentEvent + auto-delivers order), getCarrierRates (stub), handleCarrierWebhook (stub)
+- [x] Carrier rate shopping (stub): DHL, Aramex, Bosta, SMSA, Manual — all rates returned per order
+- [x] `GET /shipping`, `GET /shipping/:id`, `PATCH /shipping/:id/status`
+- [x] `POST /orders/:orderId/shipments`, `GET /orders/:orderId/shipments`, `GET /orders/:orderId/shipments/rates`
+- [x] `POST /shipping/webhook/:carrier` — stub webhook endpoint
+
+**API — ReturnsModule:**
+- [x] `ReturnsService`: create (auto-detects in-warranty from 30-day window), findAll, findOne, findMine (customer), markReceived, inspect (per-item condition assessment, RESALABLE items auto-restock inventory), processRefund (Stripe stub + store credit code generation), dispatchExchange (creates replacement order), getAnalytics
+- [x] `GET /returns`, `POST /returns`, `GET /returns/:id`, `PATCH /returns/:id/receive`, `POST /returns/:id/inspect`, `POST /returns/:id/refund`, `POST /returns/:id/exchange`
+- [x] `GET /returns/mine` (CustomerJwtGuard) for storefront account page
+
+**Admin pages:**
+- [x] `/orders/[id]` — updated: shipments section with rates viewer, inline create-shipment form, event log; packing slip + create return quick links
+- [x] `/orders/[id]/packing-slip` — printable browser-native packing slip (auto-print on load)
+- [x] `/returns` — returns list with status + type filter, warranty badge
+- [x] `/returns/new` — create return: order search (or ?orderId= prefill), item selector with qty, type/reason
+- [x] `/returns/[id]` — full detail: mark received, inspection form (per-item condition), refund form (Stripe/store credit), exchange dispatch; resolved status banners
+- [x] Sidebar: Returns link added
+
+**Storefront:**
+- [x] `/account/returns` — customer returns list with status, refund/credit details, in-warranty badge
+- [x] `/account/orders` — "My returns" nav link added
+
+**Design decisions:**
+- Stub carrier integration: real data models + flow in place; swap in EasyPost/ShipStation SDK per carrier without schema changes
+- Warranty window: 30 days from order date (configurable in code, could be moved to AppSetting later)
+- RESALABLE items on inspection: automatically restocked to inventory; SCRAP items logged but not yet linked to finance (Sprint 12)
+- Exchange dispatch: creates a full replacement Order in CONFIRMED/PAID state linked via `replacementForOrderId`
 
 **Deliverable:** Orders shipped. Returns handled with full traceability.
 

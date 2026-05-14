@@ -12,6 +12,11 @@ import { OrdersModule } from './orders/orders.module'
 import { WebhooksModule } from './webhooks/webhooks.module'
 import { InventoryModule } from './inventory/inventory.module'
 import { SettingsModule } from './settings/settings.module'
+import { RawMaterialsModule } from './raw-materials/raw-materials.module'
+import { ManufacturingModule } from './manufacturing/manufacturing.module'
+import { ProcurementModule } from './procurement/procurement.module'
+import { ShippingModule } from './shipping/shipping.module'
+import { ReturnsModule } from './returns/returns.module'
 
 @Module({
   imports: [
@@ -30,6 +35,11 @@ import { SettingsModule } from './settings/settings.module'
     WebhooksModule,
     InventoryModule,
     SettingsModule,
+    RawMaterialsModule,
+    ManufacturingModule,
+    ProcurementModule,
+    ShippingModule,
+    ReturnsModule,
   ],
   controllers: [AppController],
 })

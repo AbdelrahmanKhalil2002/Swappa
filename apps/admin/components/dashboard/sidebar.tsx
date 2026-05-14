@@ -3,15 +3,20 @@
 import {
   BarChart3,
   Box,
+  Building2,
   ChevronDown,
   ClipboardList,
+  FlaskConical,
+  Factory,
   Images,
   Layers,
   LayoutDashboard,
   Package,
+  RotateCcw,
   Settings,
   ShoppingBag,
   Tag,
+  Truck,
 } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink } from './nav-link'
@@ -102,6 +107,35 @@ export function Sidebar() {
           Inventory
         </NavLink>
 
+        <NavLink href="/raw-materials">
+          <FlaskConical className="w-4 h-4 shrink-0" />
+          Raw Materials
+        </NavLink>
+
+        <NavLink href="/manufacturing">
+          <Factory className="w-4 h-4 shrink-0" />
+          Manufacturing
+        </NavLink>
+
+        <NavSection
+          label="Procurement"
+          icon={<Truck className="w-4 h-4 shrink-0" />}
+        >
+          <NavLink href="/suppliers">
+            <Building2 className="w-3.5 h-3.5 shrink-0" />
+            Suppliers
+          </NavLink>
+          <NavLink href="/procurement">
+            <ClipboardList className="w-3.5 h-3.5 shrink-0" />
+            Purchase Orders
+          </NavLink>
+        </NavSection>
+
+        <NavLink href="/returns">
+          <RotateCcw className="w-4 h-4 shrink-0" />
+          Returns
+        </NavLink>
+
         <NavLink href="/settings">
           <Settings className="w-4 h-4 shrink-0" />
           Settings
@@ -112,7 +146,7 @@ export function Sidebar() {
           <p className="px-3 text-[10px] text-sidebar-foreground/30 uppercase tracking-wider mb-1">
             Coming soon
           </p>
-          {['Inventory', 'Manufacturing', 'Analytics'].map((m) => (
+          {['Analytics'].map((m) => (
             <div
               key={m}
               className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-sidebar-foreground/25 cursor-not-allowed"

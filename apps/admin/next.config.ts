@@ -8,6 +8,12 @@ const config: NextConfig = {
         protocol: 'https',
         hostname: 'media.swappa.com',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/uploads/**',
+      },
     ],
   },
 }

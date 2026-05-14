@@ -56,7 +56,12 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
-        <h1 className="font-display text-3xl font-light mb-8">My orders</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="font-display text-3xl font-light">My orders</h1>
+          <Link href="/account/returns" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2">
+            My returns
+          </Link>
+        </div>
 
         {orders.length === 0 ? (
           <div className="text-center py-20 space-y-4">

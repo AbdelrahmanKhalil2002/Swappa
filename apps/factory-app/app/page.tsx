@@ -1,10 +1,17 @@
-export default function FactoryRootPage() {
-  return (
-    <main className="min-h-screen flex items-center justify-center px-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Swappa Factory</h1>
-        <p className="text-muted-foreground text-sm">Factory floor operations</p>
-      </div>
-    </main>
-  )
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../context/auth-context'
+
+export default function RootPage() {
+  const { worker, loading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (loading) return
+    router.replace(worker ? '/dashboard' : '/login')
+  }, [worker, loading, router])
+
+  return null
 }

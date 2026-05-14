@@ -20,6 +20,15 @@ export class VariantsService {
     })
   }
 
+  async findAll({ limit = 200 }: { limit?: number } = {}) {
+    const items = await this.prisma.productVariant.findMany({
+      include: { baseShoe: { select: { id: true, name: true } } },
+      orderBy: [{ baseShoe: { name: 'asc' } }, { size: 'asc' }],
+      take: limit,
+    })
+    return { items }
+  }
+
   async findOne(id: string) {
     const v = await this.prisma.productVariant.findUnique({ where: { id } })
     if (!v) throw new NotFoundException('Variant not found')
