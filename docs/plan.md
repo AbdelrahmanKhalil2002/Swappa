@@ -843,6 +843,65 @@ With a team of 2–3 developers, sprints 5–10 can run in parallel across team 
 
 ---
 
+### Sprint 10.5 — Storefront CMS (Proposed)
+
+> **Status: PROPOSED 2026-05-15 by Mohamed** based on a competitive audit of Pashion Footwear. Slot, rename, or fold into another sprint as you see fit — placed here as a draft.
+
+**Goal:** Marketing owns every editorial/promo surface on the storefront without touching code. Currently the plan describes homepage sections (hero, lookbook, USP strip, featured rails) and seasonal landings but doesn't define the admin tooling to manage them — every campaign would be a dev change.
+
+**Why now:** Pashion runs the storefront entirely from admin-managed content (announcement bar, hero carousel, featured rails, "Shop the Look", themed landings like Heatwave/Mother's Day/Wedding hub, blog, FAQ, gift guides). Without this CMS layer, Swappa launches with the back-office of an ERP but the front-office of a brochure.
+
+**Schema:**
+- [ ] Prisma: `AnnouncementMessage` (text, link, startAt, endAt, sortOrder, isActive)
+- [ ] Prisma: `HeroSlide` (imageUrl, mobileImageUrl, videoUrl?, headline, subhead, ctaLabel, ctaHref, sortOrder, startAt, endAt, isActive)
+- [ ] Prisma: `FeaturedRail` (title, slug, kind: MANUAL | RULE_BASED, ruleConfig?, sortOrder, isActive) + `FeaturedRailItem` (railId, productVariantId, sortOrder)
+- [ ] Prisma: `Lookbook` (title, slug, heroImageUrl, isPublished) + `LookbookTile` (lookbookId, imageUrl, sortOrder) + `LookbookHotspot` (tileId, xPercent, yPercent, productVariantId)
+- [ ] Prisma: `Page` (slug, title, status: DRAFT | PUBLISHED, publishedAt, seoTitle, seoDescription, ogImage) + `PageBlock` (pageId, kind: HERO | RICH_TEXT | PRODUCT_GRID | IMAGE | VIDEO | CTA | FAQ_GROUP | PRICE_TIER, payload Json, sortOrder)
+- [ ] Prisma: `FAQCategory` (name, slug, sortOrder) + `FAQItem` (categoryId, question, answerHtml, sortOrder, isPublished)
+
+**API — StorefrontCmsModule:**
+- [ ] Admin CRUD (ADMIN role): announcements, hero slides, featured rails + items, lookbooks + hotspots, pages + blocks, FAQ categories + items
+- [ ] Public read endpoints (no auth) for the storefront to render: `GET /cms/announcements`, `GET /cms/hero`, `GET /cms/rails`, `GET /cms/lookbooks/:slug`, `GET /cms/pages/:slug`, `GET /cms/faq`
+- [ ] Schedule honoring: public endpoints filter by `startAt/endAt` window server-side
+- [ ] Image upload: reuse existing R2 proxy from Sprint 3
+
+**Admin pages:**
+- [ ] `/cms/announcements` — list + form (multi-message with scheduled windows, drag-to-reorder)
+- [ ] `/cms/hero` — slide editor with desktop + mobile image upload, schedule, video URL, link, live preview
+- [ ] `/cms/rails` — rail manager + per-rail item picker (variant search + drag-to-reorder); rule-based option (e.g. tag=new, sold-in-last-30d)
+- [ ] `/cms/lookbooks` — lookbook list, tile editor with hotspot placement on uploaded image (click image → drop pin → search variant)
+- [ ] `/cms/pages` — page list, block-based editor with reusable block types (HERO / RICH_TEXT / PRODUCT_GRID / IMAGE / VIDEO / CTA / FAQ_GROUP / PRICE_TIER), publish/unpublish, SEO metadata
+- [ ] `/cms/faq` — category + item CRUD with drag-to-reorder, rich-text answers
+- [ ] Sidebar: new "Storefront" section grouping all CMS modules
+
+**Storefront:**
+- [ ] Announcement bar component on every page — pulls from `/cms/announcements`, rotates if multiple, dismissible per-session
+- [ ] Homepage hero — pulls from `/cms/hero`, supports video slides
+- [ ] Featured-rail components — slot multiple rails on homepage; pull variant data with one batched query
+- [ ] Lookbook page (`/lookbooks/:slug`) — image + hotspot overlay; tap hotspot → product detail or quick-add
+- [ ] CMS-page rendering at `/p/:slug` (or custom slug routing) — renders block tree
+- [ ] FAQ page — categorized accordion pulling from `/cms/faq`, with anchor links per question (deep-link support)
+- [ ] Replace any currently-hardcoded homepage / FAQ / policy content with CMS-driven equivalents
+
+**Design decisions to flag for review:**
+- Block-based page builder vs. WYSIWYG: proposing block-based (similar to Notion / Webflow CMS) for cleaner data model and easier preview, even though WYSIWYG is faster initial dev.
+- "Rule-based" featured rails (e.g. `tag=new` or `bestSeller=true`) are optional in v0 — manual-pick is sufficient for launch.
+- Lookbook hotspot data uses percent-based coordinates so admin images of any aspect ratio work.
+- FAQ markdown vs HTML body: proposing HTML stored, edited via a constrained rich-text editor (TipTap / similar).
+
+**Deliverable:** Marketing can spin up a sale, a hero campaign, a Heatwave-style landing page, or a new FAQ entry without a code change or a deploy.
+
+**Explicitly NOT in this sprint (other audit-flagged gaps):**
+- Affiliate/creator program → separate sprint
+- E-gift cards → fold into Sprint 13 (Promotions)
+- Blog/editorial CMS → could extend the Page model later; v0 of pages is enough for seasonal landings
+- "Notify me when back in stock" → small enough to fold into Sprint 16 (Notifications)
+- Personalization line items → separate, requires data-model thinking across M2/M6/M9
+
+**Suggested team size:** 1-2 weeks if a solo contributor, 1 week with two.
+
+---
+
 ### Sprint 11 — Accounting & Finance (Weeks 23–24)
 
 **Goal:** Full double-entry accounting synced with the rest of the system.
